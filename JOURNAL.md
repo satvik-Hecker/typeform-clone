@@ -21,3 +21,22 @@ Running log of decisions made while building this project — what was done, why
 Full plan detail: schema, API routes, folder structure — see the plan this journal entry accompanies (also mirrored into README.md's architecture section once written).
 
 ---
+
+## 2026-07-26 — Backend built and smoke-tested
+
+**What:** Built the full FastAPI backend per the plan: `models.py` (6 tables), `schemas.py` (request/response DTOs), `validation.py` (server-side answer validation), four routers (`forms`, `questions`, `public`, `responses`), `main.py` wiring, `seed.py`, and a `Dockerfile` for Render. Installed deps into a local `.venv`, ran the seed script, started the server, and drove every endpoint by hand with `curl`/Python before calling it done — the brief specifically warns that type-checking isn't the same as verifying the feature works, so an API is only "done" once it's been exercised end-to-end, not just once it imports cleanly.
+
+**Why:** "Works when I read it" isn't the same as "works" — same principle either way, checking the real behavior instead of assuming the code is correct because it looks right.
+
+**How / what I tested:**
+- `GET /api/forms` → correct `response_count` per form via an outer-joined `COUNT`.
+- Full respondent journey against `customer-feedback`: start → PUT invalid email (got the expected `422`) → PUT a valid answer per question → `submit` (got the thank-you message back). Then a second run confirmed `submit` correctly rejects with `422` when a required question (`What's your name?`) was never answered — this is the server independently re-validating required-ness at submit time, not trusting the client's step-by-step navigation.
+- `GET /api/forms/{id}/summary` → correct choice counts, yes/no counts, and rating average/min/max, computed straight off the normalized columns with no JSON parsing — validates the schema design decision from the previous entry.
+- CSV export, publish-with-no-questions guard (400), duplicate (copies questions + options with fresh slug), and reorder all behaved as designed.
+- Found and fixed a real bug while testing question editing: `PATCH /forms/{id}/questions/{qid}` threw a 500 (`Instance has been deleted... Use make_transient()`) whenever a request replaced a question's options. Root cause: the code deleted the old `QuestionOption` rows, flushed, added the new ones, and then called `session.add(question)` again — but `question` was already attached to the session (it came from `session.get()`), so that redundant `add()` made SQLAlchemy cascade through the question's still-cached `.options` relationship collection, which pointed at objects that no longer existed. Fix was to just delete the redundant `session.add(question)` call — SQLAlchemy already tracks attribute changes on objects that are attached to the session, no re-add needed. Left a comment in `questions.py` explaining why that line is intentionally absent, since removing a line that "should" be there for symmetry with the other routers is the kind of thing a future edit could accidentally reintroduce.
+- Also caught (before it became a bug worth chasing) that a mojibake-looking em dash in a form title over `curl | python -m json.tool` was purely a Windows console rendering artifact — confirmed the actual bytes in SQLite and the actual codepoints in the JSON response were correct UTF-8 (`U+2014`) the whole time, so no fix was needed there.
+- Along the way, switched every `datetime.utcnow()` call to a shared timezone-aware `utcnow()` helper in `models.py` (Python 3.13 deprecates the naive version).
+
+Backend is fully functional and re-seedable (`python -m app.seed`, run from `backend/`). Next up: the Next.js frontend (builder → respondent flow → results), then deployment.
+
+---

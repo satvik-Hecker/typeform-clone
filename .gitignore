@@ -19,3 +19,6 @@ out/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local tooling config (not project source)
+.claude/
