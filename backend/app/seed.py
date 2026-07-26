@@ -67,6 +67,8 @@ def seed_feedback_form(session: Session, creator: Creator) -> None:
         status=FormStatus.published,
         slug="customer-feedback",
         thank_you_message="Thanks so much for your feedback! 🎉",
+        welcome_title="Help us make our product better",
+        welcome_description="This survey takes less than 2 minutes and your answers directly shape what we build next.",
         published_at=utcnow() - timedelta(days=10),
         created_at=utcnow() - timedelta(days=14),
         updated_at=utcnow() - timedelta(hours=2),

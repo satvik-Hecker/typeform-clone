@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useDeleteQuestion, useReorderQuestions } from "@/hooks/use-form";
 import { ApiError } from "@/lib/api";
+import { QUESTION_TYPE_COLORS } from "@/lib/question-type-color";
 import { QUESTION_TYPE_ICONS } from "@/lib/question-type-icons";
 import { cn } from "@/lib/utils";
 import type { Question } from "@/lib/types";
@@ -74,6 +75,7 @@ export function QuestionSidebar({ formId, questions, selectedQuestionId, onSelec
 
   return (
     <div className="flex h-full w-72 shrink-0 flex-col gap-3 border-r bg-muted/30 p-3">
+      <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pages</h2>
       <div className="flex-1 space-y-1 overflow-y-auto">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={items.map((q) => q.id)} strategy={verticalListSortingStrategy}>
@@ -142,7 +144,7 @@ function SortableQuestionRow({ question, index, selected, onSelect, onDelete }: 
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "group flex items-center gap-1 rounded-lg border border-transparent px-1.5 py-1.5 text-sm",
+        "group flex items-center gap-1.5 rounded-lg border border-transparent px-1.5 py-1.5 text-sm",
         selected ? "border-border bg-background shadow-sm" : "hover:bg-background/60",
         isDragging && "opacity-50"
       )}
@@ -160,8 +162,10 @@ function SortableQuestionRow({ question, index, selected, onSelect, onDelete }: 
         onClick={onSelect}
         className="flex flex-1 items-center gap-2 overflow-hidden text-left"
       >
+        <span className={cn("flex size-6 shrink-0 items-center justify-center rounded-md", QUESTION_TYPE_COLORS[question.type])}>
+          <Icon className="size-3.5" />
+        </span>
         <span className="w-4 shrink-0 text-xs text-muted-foreground">{index + 1}</span>
-        <Icon className="size-4 shrink-0 text-muted-foreground" />
         <span className="truncate">{question.title || "Untitled question"}</span>
       </button>
       <Button variant="ghost" size="icon-sm" className="opacity-0 group-hover:opacity-100" onClick={onDelete}>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ProgressBar } from "./progress-bar";
 import { QuestionSlide } from "./question-slide";
 import { ThankYouScreen } from "./thank-you-screen";
+import { WelcomeScreen } from "./welcome-screen";
 import { ApiError, api } from "@/lib/api";
 import { parseFormTheme } from "@/lib/theme";
 import { isAnswerEmpty, validateAnswer } from "@/lib/validate-answer";
@@ -30,6 +31,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
   const [completed, setCompleted] = useState(false);
   const [thankYouMessage, setThankYouMessage] = useState(form.thank_you_message);
   const [submitting, setSubmitting] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(!!form.welcome_title);
 
   const startedRef = useRef(false);
 
@@ -122,6 +124,14 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
     if (completed) return;
 
     function handleKeyDown(e: KeyboardEvent) {
+      if (showWelcome) {
+        if (e.key === "Enter" || e.key === "ArrowDown") {
+          e.preventDefault();
+          setShowWelcome(false);
+        }
+        return;
+      }
+
       const target = e.target as HTMLElement;
       const isTextarea = target.tagName === "TEXTAREA";
 
@@ -144,7 +154,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goNext, goPrev, completed]);
+  }, [goNext, goPrev, completed, showWelcome]);
 
   if (!question && !completed) {
     return (
@@ -159,7 +169,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
 
   return (
     <div className="relative flex h-full min-h-screen flex-col bg-background">
-      <ProgressBar progress={progress} color={accentColor} />
+      {!showWelcome && <ProgressBar progress={progress} color={accentColor} />}
 
       {mode === "preview" && onClose && (
         <button
@@ -173,7 +183,15 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
 
       <div className="flex flex-1 items-center py-20">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
-          {completed ? (
+          {showWelcome ? (
+            <WelcomeScreen
+              key="welcome"
+              title={form.welcome_title as string}
+              description={form.welcome_description}
+              onStart={() => setShowWelcome(false)}
+              accentColor={accentColor}
+            />
+          ) : completed ? (
             <ThankYouScreen key="thank-you" message={thankYouMessage} />
           ) : (
             <QuestionSlide
@@ -191,7 +209,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
         </AnimatePresence>
       </div>
 
-      {!completed && (
+      {!completed && !showWelcome && (
         <div className="fixed bottom-6 right-6 z-10 flex items-center gap-3">
           <div className="flex flex-col overflow-hidden rounded-lg border bg-background shadow-sm">
             <button

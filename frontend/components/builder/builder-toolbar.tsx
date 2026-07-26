@@ -19,7 +19,7 @@ interface BuilderToolbarProps {
 
 export function BuilderToolbar({ form, device, onDeviceChange, onQuestionCreated }: BuilderToolbarProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<"general" | "theme" | "coming-soon" | null>(null);
+  const [settingsTab, setSettingsTab] = useState<"general" | "welcome" | "theme" | "coming-soon" | null>(null);
 
   return (
     <div className="flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">

@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeftIcon, LinkIcon } from "lucide-react";
+import { BookTypeIcon, ChevronRightIcon, LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { UserMenu } from "@/components/dashboard/user-menu";
 import { StatusPill } from "@/components/shared/status-pill";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useFormQuery, useUpdateForm } from "@/hooks/use-form";
 import { usePublishForm, useUnpublishForm } from "@/hooks/use-forms";
 import { ApiError } from "@/lib/api";
@@ -23,7 +25,6 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
   const publishForm = usePublishForm();
   const unpublishForm = useUnpublishForm();
   const pathname = usePathname();
-  const router = useRouter();
 
   const [title, setTitle] = useState("");
 
@@ -64,14 +65,19 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
     toast.success("Link copied to clipboard");
   }
 
-  const isEditTab = pathname === `/forms/${formId}`;
-  const isResultsTab = pathname === `/forms/${formId}/results`;
+  const tabs = [
+    { href: `/forms/${formId}`, label: "Edit form" },
+    { href: `/forms/${formId}/share`, label: "Share" },
+    { href: `/forms/${formId}/results`, label: "Results" },
+  ];
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
-      <Button variant="ghost" size="icon-sm" onClick={() => router.push("/forms")}>
-        <ArrowLeftIcon />
-      </Button>
+      <Link href="/forms" className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <BookTypeIcon className="size-4" />
+        Forms
+      </Link>
+      <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground/50" />
 
       <input
         value={title}
@@ -88,24 +94,18 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
       <StatusPill status={form.status} />
 
       <nav className="ml-2 flex items-center gap-1 rounded-lg bg-muted p-0.5 text-sm">
-        <Link
-          href={`/forms/${formId}`}
-          className={cn(
-            "rounded-md px-3 py-1",
-            isEditTab ? "bg-background shadow-sm" : "text-muted-foreground"
-          )}
-        >
-          Edit
-        </Link>
-        <Link
-          href={`/forms/${formId}/results`}
-          className={cn(
-            "rounded-md px-3 py-1",
-            isResultsTab ? "bg-background shadow-sm" : "text-muted-foreground"
-          )}
-        >
-          Results
-        </Link>
+        {tabs.map((tab) => (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className={cn(
+              "rounded-md px-3 py-1",
+              pathname === tab.href ? "bg-background shadow-sm" : "text-muted-foreground"
+            )}
+          >
+            {tab.label}
+          </Link>
+        ))}
       </nav>
 
       <div className="ml-auto flex items-center gap-2">
@@ -121,6 +121,8 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
         >
           {form.status === "published" ? "Unpublish" : "Publish"}
         </Button>
+        <ThemeToggle />
+        <UserMenu />
       </div>
     </header>
   );

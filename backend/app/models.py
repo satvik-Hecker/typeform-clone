@@ -62,6 +62,10 @@ class Form(SQLModel, table=True):
     status: FormStatus = Field(default=FormStatus.draft, index=True)
     slug: str = Field(unique=True, index=True)
     thank_you_message: str = Field(default="Thanks for completing this form!")
+    # A welcome screen is shown before question 1 only when welcome_title is set;
+    # otherwise the respondent flow skips straight to the first question.
+    welcome_title: Optional[str] = None
+    welcome_description: Optional[str] = None
     theme: Optional[str] = None  # JSON-encoded: {primaryColor, fontFamily, backgroundColor}
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

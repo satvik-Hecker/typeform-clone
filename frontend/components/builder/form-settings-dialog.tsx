@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,25 +28,31 @@ interface FormSettingsDialogProps {
   form: Form;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultTab?: "general" | "theme" | "coming-soon";
+  defaultTab?: "general" | "welcome" | "theme" | "coming-soon";
 }
 
 export function FormSettingsDialog({ form, open, onOpenChange, defaultTab = "general" }: FormSettingsDialogProps) {
   const updateForm = useUpdateForm(form.id);
   const [thankYouMessage, setThankYouMessage] = useState(form.thank_you_message);
+  const [welcomeTitle, setWelcomeTitle] = useState(form.welcome_title ?? "");
+  const [welcomeDescription, setWelcomeDescription] = useState(form.welcome_description ?? "");
   const [primaryColor, setPrimaryColor] = useState(parseFormTheme(form.theme).primaryColor ?? "");
 
   useEffect(() => {
     if (open) {
       setThankYouMessage(form.thank_you_message);
+      setWelcomeTitle(form.welcome_title ?? "");
+      setWelcomeDescription(form.welcome_description ?? "");
       setPrimaryColor(parseFormTheme(form.theme).primaryColor ?? "");
     }
-  }, [open, form.thank_you_message, form.theme]);
+  }, [open, form.thank_you_message, form.welcome_title, form.welcome_description, form.theme]);
 
   function handleSave() {
     updateForm.mutate(
       {
         thank_you_message: thankYouMessage.trim() || "Thanks for completing this form!",
+        welcome_title: welcomeTitle.trim() || null,
+        welcome_description: welcomeDescription.trim() || null,
         theme: primaryColor ? JSON.stringify({ primaryColor }) : null,
       },
       {
@@ -68,6 +75,7 @@ export function FormSettingsDialog({ form, open, onOpenChange, defaultTab = "gen
         <Tabs defaultValue={defaultTab}>
           <TabsList>
             <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="welcome">Welcome screen</TabsTrigger>
             <TabsTrigger value="theme">Theme</TabsTrigger>
             <TabsTrigger value="coming-soon">Coming soon</TabsTrigger>
           </TabsList>
@@ -81,6 +89,31 @@ export function FormSettingsDialog({ form, open, onOpenChange, defaultTab = "gen
               rows={3}
             />
             <p className="text-xs text-muted-foreground">Shown after a respondent submits this form.</p>
+          </TabsContent>
+
+          <TabsContent value="welcome" className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="welcome-title">Welcome title</Label>
+              <Input
+                id="welcome-title"
+                placeholder="Leave blank to skip straight to question 1"
+                value={welcomeTitle}
+                onChange={(e) => setWelcomeTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="welcome-description">Welcome description</Label>
+              <Textarea
+                id="welcome-description"
+                placeholder="Optional"
+                value={welcomeDescription}
+                onChange={(e) => setWelcomeDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Shown before question 1, with a &ldquo;Let&apos;s go&rdquo; button. Leave the title empty to skip it.
+            </p>
           </TabsContent>
 
           <TabsContent value="theme" className="space-y-3 py-2">

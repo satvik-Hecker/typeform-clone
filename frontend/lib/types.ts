@@ -44,6 +44,8 @@ export interface Form {
   status: FormStatus;
   slug: string;
   thank_you_message: string;
+  welcome_title: string | null;
+  welcome_description: string | null;
   theme: string | null; // JSON-encoded FormTheme
   created_at: string;
   updated_at: string;
@@ -72,6 +74,8 @@ export interface FormUpdatePayload {
   title?: string;
   description?: string | null;
   thank_you_message?: string;
+  welcome_title?: string | null;
+  welcome_description?: string | null;
   theme?: string | null;
 }
 
