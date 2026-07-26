@@ -8,12 +8,27 @@ a computed `response_count` that isn't a column, and a response's answers are
 read back joined with the question title/type for display.
 """
 
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Annotated, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PlainSerializer
 
 from app.models import FormStatus, QuestionType
+
+
+def _utc_iso(dt: datetime) -> str:
+    """SQLite drops tzinfo on the round trip, so a naive value read back from
+    the DB is always actually UTC (every datetime this app writes comes from
+    `utcnow()`). Without re-attaching tzinfo here, the serialized string has
+    no offset/`Z` suffix, and browsers parse it as *local* time instead of
+    UTC — silently skewing every "time ago" display by the client's UTC
+    offset (e.g. a form created seconds ago reads "6 hours ago" in IST)."""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.isoformat()
+
+
+UTCDateTime = Annotated[datetime, PlainSerializer(_utc_iso, return_type=str)]
 
 
 # ---- Question options ----
@@ -97,8 +112,8 @@ class FormListItem(BaseModel):
     status: FormStatus
     slug: str
     response_count: int
-    created_at: datetime
-    updated_at: datetime
+    created_at: UTCDateTime
+    updated_at: UTCDateTime
 
     model_config = {"from_attributes": True}
 
@@ -111,9 +126,9 @@ class FormOut(BaseModel):
     slug: str
     thank_you_message: str
     theme: Optional[str]
-    created_at: datetime
-    updated_at: datetime
-    published_at: Optional[datetime]
+    created_at: UTCDateTime
+    updated_at: UTCDateTime
+    published_at: Optional[UTCDateTime]
     questions: list[QuestionOut]
 
     model_config = {"from_attributes": True}
@@ -146,16 +161,16 @@ class AnswerOut(BaseModel):
 
 class ResponseListItem(BaseModel):
     id: int
-    started_at: datetime
-    submitted_at: Optional[datetime]
+    started_at: UTCDateTime
+    submitted_at: Optional[UTCDateTime]
     is_complete: bool
 
 
 class ResponseDetail(BaseModel):
     id: int
     form_id: int
-    started_at: datetime
-    submitted_at: Optional[datetime]
+    started_at: UTCDateTime
+    submitted_at: Optional[UTCDateTime]
     is_complete: bool
     answers: list[AnswerOut]
 

@@ -8,7 +8,7 @@ import { comingSoon } from "@/lib/coming-soon";
 
 export function DashboardTopBar() {
   return (
-    <header className="flex h-14 items-center justify-between border-b px-6">
+    <header className="mx-auto flex h-14 w-full max-w-[1600px] shrink-0 items-center justify-between rounded-2xl border bg-background px-6 shadow-sm">
       <div className="flex items-center gap-2">
         <BookTypeIcon className="size-6" />
         <span className="font-heading text-sm font-semibold">TypeForm</span>
