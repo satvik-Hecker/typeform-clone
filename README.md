@@ -2,11 +2,11 @@
 
 A functional clone of Typeform: drag-and-drop form builder, published shareable links, an animated one-question-at-a-time respondent experience, and a results/response dashboard.
 
-> Status: backend complete and smoke-tested. Frontend not yet started. See [JOURNAL.md](JOURNAL.md) for the running log of decisions.
+> Status: backend and frontend both complete and smoke-tested locally. See [JOURNAL.md](JOURNAL.md) for the running log of decisions. Not yet deployed.
 
 ## Tech Stack
 
-- **Frontend:** Next.js (TypeScript, App Router), Tailwind CSS, shadcn/ui, Framer Motion, @dnd-kit *(not yet built)*
+- **Frontend:** Next.js 16 (TypeScript, App Router), Tailwind CSS v4, shadcn/ui (Base UI primitives), Framer Motion, @dnd-kit, TanStack Query, next-themes
 - **Backend:** FastAPI, SQLModel (SQLAlchemy + Pydantic)
 - **Database:** SQLite
 
@@ -32,7 +32,18 @@ Re-running `python -m app.seed` wipes and reloads all sample data — safe to ru
 
 ### Frontend
 
-_Coming soon._
+Requires the backend running first (see above) so `NEXT_PUBLIC_API_URL` has something to talk to.
+
+```bash
+cd frontend
+npm install
+
+cp .env.example .env.local       # NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
+
+npm run dev                       # http://localhost:3000
+```
+
+Visiting `http://localhost:3000` redirects to `/forms` (the dashboard). Seeded forms are immediately visible; open one to reach the builder, or copy a published form's link (`/f/{slug}`) to try the respondent flow.
 
 ## Architecture Overview
 
@@ -41,6 +52,16 @@ _Coming soon._
 - **Routers, one per concern**: `forms.py` (form CRUD, publish/unpublish, duplicate), `questions.py` (question CRUD, reorder), `public.py` (respondent flow: start a response, submit answers, finish), `responses.py` (creator-side results: list, detail, per-question summary stats, CSV export).
 - **Validation lives server-side too** (`app/validation.py`): required-ness, email format, and number/rating range checks are re-verified on the server independent of whatever the frontend already checked, since a request can always bypass the UI.
 - **No migrations**: schema is created via `SQLModel.metadata.create_all()` on startup rather than Alembic — a deliberate simplification appropriate for this project's scope (see Assumptions).
+
+### Frontend
+
+- **Routes** (`frontend/app/`): `/forms` (dashboard), `/forms/[formId]` (builder — Edit tab), `/forms/[formId]/results` (Results tab, shares a layout/top bar with the builder), `/f/[slug]` (public respondent flow, no auth, no shared chrome).
+- **Builder is a 3-column layout**: `QuestionSidebar` (left, drag-and-drop reorder via `@dnd-kit`) → toolbar (Add content / Design / desktop-mobile preview toggle / Preview / Settings) + `QuestionCanvas` (center, an inline-editable live preview of the selected question) → `QuestionSettingsPanel` (right, type/required/placeholder/min-max/options) — modeled directly on Typeform's own builder layout.
+- **The respondent flow is one component reused twice**: `RespondentFlow` (`components/respondent/`) takes a `mode: "live" | "preview"` prop. The public `/f/[slug]` page uses `mode="live"` (calls the real start/answer/submit API); the builder's "Preview" button opens the exact same component in a dialog with `mode="preview"` (no network calls, resets on close) — so what a creator previews is pixel-for-pixel what a respondent sees, not a separate mock.
+- **Client-side validation mirrors the backend** (`lib/validate-answer.ts` mirrors `backend/app/validation.py`) for instant feedback, but every answer still round-trips through the real API — the server remains the source of truth.
+- **State**: TanStack Query for all server state (forms/questions/responses), scoped query keys per form so a question edit only invalidates that form's cache. Free-text field edits (title, description, placeholder) autosave via a 600ms debounce; required/type/option changes save immediately.
+- **Placeholders**: per the assignment's explicit allowance, "Contacts"/"Automations" (dashboard nav), "Integrations"/"Brand kit" (top bar), "Invite" (team collaboration), and a Settings-dialog tab listing logic jumps, integrations, collaboration, and payment/file-upload questions are all wired to a "coming soon" toast/badge rather than removed — they exist in the UI (matching Typeform's real layout) without pretending to be functional.
+- **Bonus features implemented**: dark mode (next-themes, toggle in both top bars), a per-form accent color (Settings → Theme) applied to the respondent view's progress bar/OK button/selected-answer states, CSV export, and partial-response tracking (a `responses` row is created when a respondent *starts*, not just on submit, so incomplete fills show up as "Partial" in the results table and count toward the completion-rate stat).
 
 ## Database Schema
 
@@ -111,3 +132,5 @@ All creator-side routes are under `/api/forms`; respondent-facing routes (no aut
 - No real creator authentication — a single default creator is seeded and assumed logged-in, per the assignment's allowance to simplify auth.
 - No database migrations (Alembic) — schema is created via `SQLModel.metadata.create_all()` on startup. Acceptable at this scale; would introduce migrations for a longer-lived schema.
 - A form's public `slug` is generated at creation time (not only at publish time), so a draft form already has a stable future URL.
+- "Theme customization" is scoped to a single accent color (applied to the respondent view's progress bar, OK button, and selected-answer states) rather than full font/background/layout theming — the assignment lists custom themes as a bonus, not a core requirement.
+- The dashboard's workspace chrome (single "My workspace", one creator avatar, Contacts/Automations/Integrations/Brand kit/Invite) mirrors Typeform's real UI for visual fidelity but is intentionally not backed by real multi-workspace or team functionality, consistent with the assignment's explicit allowance to mock team collaboration and integrations.
