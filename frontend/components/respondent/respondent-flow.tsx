@@ -10,6 +10,7 @@ import { ProgressBar } from "./progress-bar";
 import { QuestionSlide } from "./question-slide";
 import { ThankYouScreen } from "./thank-you-screen";
 import { ApiError, api } from "@/lib/api";
+import { parseFormTheme } from "@/lib/theme";
 import { isAnswerEmpty, validateAnswer } from "@/lib/validate-answer";
 import type { AnswerSubmitPayload, Form } from "@/lib/types";
 
@@ -154,10 +155,11 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
   }
 
   const progress = completed ? 1 : currentIndex / questions.length;
+  const accentColor = parseFormTheme(form.theme).primaryColor;
 
   return (
     <div className="relative flex h-full min-h-screen flex-col bg-background">
-      <ProgressBar progress={progress} />
+      <ProgressBar progress={progress} color={accentColor} />
 
       {mode === "preview" && onClose && (
         <button
@@ -183,6 +185,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
               error={error}
               onChange={setValue}
               onAdvance={advance}
+              accentColor={accentColor}
             />
           )}
         </AnimatePresence>
@@ -209,7 +212,12 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
             </button>
           </div>
 
-          <Button onClick={goNext} disabled={submitting} className="gap-2">
+          <Button
+            onClick={goNext}
+            disabled={submitting}
+            className="gap-2"
+            style={accentColor ? { backgroundColor: accentColor, color: "white" } : undefined}
+          >
             {submitting ? "Submitting…" : currentIndex === questions.length - 1 ? "Submit" : "OK"}
             {!submitting && <CornerDownLeftIcon className="size-4" />}
           </Button>

@@ -1,7 +1,9 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { QuestionEditor } from "@/components/builder/question-editor";
+import { BuilderToolbar } from "@/components/builder/builder-toolbar";
+import { QuestionCanvas } from "@/components/builder/question-canvas";
+import { QuestionSettingsPanel } from "@/components/builder/question-settings-panel";
 import { QuestionSidebar } from "@/components/builder/question-sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFormQuery } from "@/hooks/use-form";
@@ -11,6 +13,7 @@ export default function BuilderEditPage(props: { params: Promise<{ formId: strin
   const id = Number(formId);
   const { data: form, isLoading, isError } = useFormQuery(id);
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
 
   useEffect(() => {
     if (form && form.questions.length > 0 && selectedQuestionId === null) {
@@ -34,7 +37,8 @@ export default function BuilderEditPage(props: { params: Promise<{ formId: strin
     );
   }
 
-  const selectedQuestion = form.questions.find((q) => q.id === selectedQuestionId) ?? null;
+  const selectedIndex = form.questions.findIndex((q) => q.id === selectedQuestionId);
+  const selectedQuestion = selectedIndex >= 0 ? form.questions[selectedIndex] : null;
 
   return (
     <>
@@ -44,15 +48,28 @@ export default function BuilderEditPage(props: { params: Promise<{ formId: strin
         selectedQuestionId={selectedQuestionId}
         onSelect={setSelectedQuestionId}
       />
-      <div className="flex-1 overflow-y-auto bg-background">
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <BuilderToolbar
+          form={form}
+          device={device}
+          onDeviceChange={setDevice}
+          onQuestionCreated={setSelectedQuestionId}
+        />
         {selectedQuestion ? (
-          <QuestionEditor key={selectedQuestion.id} formId={id} question={selectedQuestion} />
+          <QuestionCanvas formId={id} question={selectedQuestion} index={selectedIndex} device={device} />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             Add a question to get started.
           </div>
         )}
       </div>
+      {selectedQuestion && (
+        <QuestionSettingsPanel
+          formId={id}
+          question={selectedQuestion}
+          onDeleted={() => setSelectedQuestionId(null)}
+        />
+      )}
     </>
   );
 }

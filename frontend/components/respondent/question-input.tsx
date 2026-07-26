@@ -18,11 +18,12 @@ interface QuestionInputProps {
   value: AnswerSubmitPayload;
   onChange: (value: AnswerSubmitPayload) => void;
   onAdvance: () => void;
+  accentColor?: string;
 }
 
 const AUTO_ADVANCE_DELAY = 350;
 
-export function QuestionInput({ question, value, onChange, onAdvance }: QuestionInputProps) {
+export function QuestionInput({ question, value, onChange, onAdvance, accentColor }: QuestionInputProps) {
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -81,10 +82,15 @@ export function QuestionInput({ question, value, onChange, onAdvance }: Question
                 onChange({ value_bool: opt.val });
                 setTimeout(onAdvance, AUTO_ADVANCE_DELAY);
               }}
+              style={
+                value.value_bool === opt.val && accentColor
+                  ? { borderColor: accentColor, backgroundColor: accentColor, color: "white" }
+                  : undefined
+              }
               className={cn(
                 "rounded-xl border-2 px-8 py-4 text-lg font-medium transition-colors",
                 value.value_bool === opt.val
-                  ? "border-foreground bg-foreground text-background"
+                  ? !accentColor && "border-foreground bg-foreground text-background"
                   : "border-border hover:border-foreground/40"
               )}
             >
@@ -111,9 +117,12 @@ export function QuestionInput({ question, value, onChange, onAdvance }: Question
               className="transition-transform hover:scale-110"
             >
               <StarIcon
+                style={n <= current && accentColor ? { color: accentColor, fill: accentColor } : undefined}
                 className={cn(
                   "size-8 sm:size-10",
-                  n <= current ? "fill-foreground text-foreground" : "fill-none text-muted-foreground/40"
+                  n <= current
+                    ? !accentColor && "fill-foreground text-foreground"
+                    : "fill-none text-muted-foreground/40"
                 )}
               />
             </button>
@@ -133,10 +142,15 @@ export function QuestionInput({ question, value, onChange, onAdvance }: Question
                 onChange({ selected_option_id: option.id });
                 setTimeout(onAdvance, AUTO_ADVANCE_DELAY);
               }}
+              style={
+                value.selected_option_id === option.id && accentColor
+                  ? { borderColor: accentColor, backgroundColor: accentColor, color: "white" }
+                  : undefined
+              }
               className={cn(
                 "flex items-center gap-3 rounded-lg border-2 px-4 py-3 text-left text-lg transition-colors",
                 value.selected_option_id === option.id
-                  ? "border-foreground bg-foreground text-background"
+                  ? !accentColor && "border-foreground bg-foreground text-background"
                   : "border-border hover:border-foreground/40"
               )}
             >

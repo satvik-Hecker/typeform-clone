@@ -15,8 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { useUpdateQuestion } from "@/hooks/use-form";
+import { useDeleteQuestion, useUpdateQuestion } from "@/hooks/use-form";
 import { ApiError } from "@/lib/api";
 import {
   CHOICE_QUESTION_TYPES,
@@ -36,16 +35,16 @@ function toDraftOptions(question: Question): DraftOption[] {
   return question.options.map((o) => ({ key: `${o.id}`, label: o.label }));
 }
 
-interface QuestionEditorProps {
+interface QuestionSettingsPanelProps {
   formId: number;
   question: Question;
+  onDeleted: () => void;
 }
 
-export function QuestionEditor({ formId, question }: QuestionEditorProps) {
+export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionSettingsPanelProps) {
   const updateQuestion = useUpdateQuestion(formId);
+  const deleteQuestion = useDeleteQuestion(formId);
 
-  const [title, setTitle] = useState(question.title);
-  const [description, setDescription] = useState(question.description ?? "");
   const [placeholder, setPlaceholder] = useState(question.placeholder ?? "");
   const [minValue, setMinValue] = useState(question.min_value?.toString() ?? "");
   const [maxValue, setMaxValue] = useState(question.max_value?.toString() ?? "");
@@ -57,10 +56,7 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
 
   const skipNextSave = useRef(true);
 
-  // A different question was selected — reset the draft, skip the next autosave tick.
   useEffect(() => {
-    setTitle(question.title);
-    setDescription(question.description ?? "");
     setPlaceholder(question.placeholder ?? "");
     setMinValue(question.min_value?.toString() ?? "");
     setMaxValue(question.max_value?.toString() ?? "");
@@ -79,8 +75,6 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
         {
           questionId: question.id,
           payload: {
-            title: title.trim() || "Untitled question",
-            description: description.trim() || null,
             placeholder: placeholder.trim() || null,
             min_value: minValue.trim() === "" ? null : Number(minValue),
             max_value: maxValue.trim() === "" ? null : Number(maxValue),
@@ -94,14 +88,12 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
               : {}),
           },
         },
-        {
-          onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't save changes"),
-        }
+        { onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't save changes") }
       );
     }, 600);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, description, placeholder, minValue, maxValue, options]);
+  }, [placeholder, minValue, maxValue, options]);
 
   function handleRequiredChange(checked: boolean) {
     updateQuestion.mutate(
@@ -118,6 +110,13 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
     );
   }
 
+  function handleDelete() {
+    deleteQuestion.mutate(question.id, {
+      onSuccess: onDeleted,
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't delete the question"),
+    });
+  }
+
   function addOption() {
     setOptions((prev) => [...prev, { key: `new-${Date.now()}`, label: "" }]);
   }
@@ -131,10 +130,11 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-xl space-y-6 overflow-y-auto p-8">
-      <div className="flex items-center justify-between">
+    <div className="flex w-80 shrink-0 flex-col gap-5 overflow-y-auto border-l p-4">
+      <div>
+        <Label className="mb-1.5 block text-xs text-muted-foreground">Question type</Label>
         <Select value={question.type} onValueChange={(v) => handleTypeChange(v as QuestionType)}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -145,43 +145,20 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
             ))}
           </SelectContent>
         </Select>
-
-        <div className="flex items-center gap-2">
-          <Label htmlFor="required-toggle" className="text-sm text-muted-foreground">
-            Required
-          </Label>
-          <Switch
-            id="required-toggle"
-            checked={question.required}
-            onCheckedChange={handleRequiredChange}
-          />
-        </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="question-title">Question</Label>
-        <Input
-          id="question-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="font-heading text-lg"
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="question-description">Description / help text</Label>
-        <Textarea
-          id="question-description"
-          placeholder="Optional"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={2}
-        />
+      <div className="flex items-center justify-between">
+        <Label htmlFor="required-toggle" className="text-sm">
+          Required
+        </Label>
+        <Switch id="required-toggle" checked={question.required} onCheckedChange={handleRequiredChange} />
       </div>
 
       {isSimpleText && (
         <div className="space-y-1.5">
-          <Label htmlFor="question-placeholder">Placeholder</Label>
+          <Label htmlFor="question-placeholder" className="text-xs text-muted-foreground">
+            Placeholder
+          </Label>
           <Input
             id="question-placeholder"
             placeholder="Shown inside the answer field"
@@ -192,13 +169,17 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
       )}
 
       {isNumeric && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="min-value">Min{question.type === "rating" ? " (e.g. 1)" : ""}</Label>
+            <Label htmlFor="min-value" className="text-xs text-muted-foreground">
+              Min
+            </Label>
             <Input id="min-value" type="number" value={minValue} onChange={(e) => setMinValue(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="max-value">Max{question.type === "rating" ? " (e.g. 5)" : ""}</Label>
+            <Label htmlFor="max-value" className="text-xs text-muted-foreground">
+              Max
+            </Label>
             <Input id="max-value" type="number" value={maxValue} onChange={(e) => setMaxValue(e.target.value)} />
           </div>
         </div>
@@ -206,7 +187,7 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
 
       {isChoice && (
         <div className="space-y-1.5">
-          <Label>Options</Label>
+          <Label className="text-xs text-muted-foreground">Options</Label>
           <div className="space-y-2">
             {options.map((option) => (
               <div key={option.key} className="flex items-center gap-2">
@@ -226,6 +207,12 @@ export function QuestionEditor({ formId, question }: QuestionEditorProps) {
           </Button>
         </div>
       )}
+
+      <div className="mt-auto border-t pt-4">
+        <Button variant="destructive" size="sm" className="w-full" onClick={handleDelete}>
+          Delete question
+        </Button>
+      </div>
     </div>
   );
 }

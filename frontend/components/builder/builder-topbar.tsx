@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeftIcon, EyeIcon, LinkIcon } from "lucide-react";
+import { ArrowLeftIcon, LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { LivePreviewModal } from "@/components/builder/live-preview-modal";
 import { StatusPill } from "@/components/shared/status-pill";
 import { useFormQuery, useUpdateForm } from "@/hooks/use-form";
 import { usePublishForm, useUnpublishForm } from "@/hooks/use-forms";
@@ -27,7 +26,6 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
   const router = useRouter();
 
   const [title, setTitle] = useState("");
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (form) setTitle(form.title);
@@ -111,9 +109,6 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
       </nav>
 
       <div className="ml-auto flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
-          <EyeIcon /> Preview
-        </Button>
         {form.status === "published" && (
           <Button variant="outline" size="sm" onClick={handleCopyLink}>
             <LinkIcon /> Copy link
@@ -127,8 +122,6 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
           {form.status === "published" ? "Unpublish" : "Publish"}
         </Button>
       </div>
-
-      <LivePreviewModal form={form} open={previewOpen} onOpenChange={setPreviewOpen} />
     </header>
   );
 }

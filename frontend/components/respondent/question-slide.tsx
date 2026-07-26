@@ -20,9 +20,19 @@ interface QuestionSlideProps {
   error: string | null;
   onChange: (value: AnswerSubmitPayload) => void;
   onAdvance: () => void;
+  accentColor?: string;
 }
 
-export function QuestionSlide({ question, index, direction, value, error, onChange, onAdvance }: QuestionSlideProps) {
+export function QuestionSlide({
+  question,
+  index,
+  direction,
+  value,
+  error,
+  onChange,
+  onAdvance,
+  accentColor,
+}: QuestionSlideProps) {
   return (
     <motion.div
       custom={direction}
@@ -47,7 +57,13 @@ export function QuestionSlide({ question, index, direction, value, error, onChan
           )}
 
           <div className="mt-8">
-            <QuestionInput question={question} value={value} onChange={onChange} onAdvance={onAdvance} />
+            <QuestionInput
+              question={question}
+              value={value}
+              onChange={onChange}
+              onAdvance={onAdvance}
+              accentColor={accentColor}
+            />
           </div>
 
           {error && (

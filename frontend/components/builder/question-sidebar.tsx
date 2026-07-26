@@ -23,7 +23,6 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { AddQuestionMenu } from "./add-question-menu";
 import { useDeleteQuestion, useReorderQuestions } from "@/hooks/use-form";
 import { ApiError } from "@/lib/api";
 import { QUESTION_TYPE_ICONS } from "@/lib/question-type-icons";
@@ -93,12 +92,10 @@ export function QuestionSidebar({ formId, questions, selectedQuestionId, onSelec
 
         {items.length === 0 && (
           <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-            No questions yet. Add your first one below.
+            No questions yet. Use &ldquo;Add content&rdquo; above to add one.
           </p>
         )}
       </div>
-
-      <AddQuestionMenu formId={formId} onCreated={onSelect} />
 
       <ConfirmDialog
         open={pendingDeleteId !== null}

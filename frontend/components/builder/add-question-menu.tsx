@@ -43,9 +43,9 @@ export function AddQuestionMenu({ formId, onCreated }: AddQuestionMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="outline" className="w-full justify-center" disabled={createQuestion.isPending}>
+          <Button variant="ghost" size="sm" disabled={createQuestion.isPending}>
             <PlusIcon />
-            Add question
+            Add content
           </Button>
         }
       />
