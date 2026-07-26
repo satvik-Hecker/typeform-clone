@@ -57,6 +57,7 @@ export interface FormListItem {
   status: FormStatus;
   slug: string;
   response_count: number;
+  created_at: string;
   updated_at: string;
 }
 

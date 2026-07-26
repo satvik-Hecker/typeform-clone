@@ -18,8 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateForm } from "@/hooks/use-forms";
 import { ApiError } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
-export function CreateFormDialog() {
+export function CreateFormDialog({ triggerClassName }: { triggerClassName?: string } = {}) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const router = useRouter();
@@ -56,7 +57,7 @@ export function CreateFormDialog() {
     >
       <DialogTrigger
         render={
-          <Button>
+          <Button className={cn(triggerClassName)}>
             <PlusIcon />
             Create form
           </Button>

@@ -28,7 +28,7 @@ export function ResponseDetailSheet({ formId, responseId, onOpenChange }: Respon
           )}
         </SheetHeader>
 
-        <div className="flex flex-col gap-5 px-4 pb-6">
+        <div className="flex flex-col gap-5 px-6 pb-6">
           {isLoading &&
             Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
 

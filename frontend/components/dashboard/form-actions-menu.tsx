@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3Icon, CopyIcon, LinkIcon, MoreVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import {
+  BarChart3Icon,
+  CopyIcon,
+  EyeOffIcon,
+  LinkIcon,
+  MoreVerticalIcon,
+  PencilIcon,
+  RocketIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -103,7 +112,15 @@ export function FormActionsMenu({ form }: { form: FormListItem }) {
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={handleTogglePublish}>
-            {published ? "Unpublish" : "Publish"}
+            {published ? (
+              <>
+                <EyeOffIcon /> Unpublish
+              </>
+            ) : (
+              <>
+                <RocketIcon /> Publish
+              </>
+            )}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>

@@ -97,6 +97,7 @@ class FormListItem(BaseModel):
     status: FormStatus
     slug: str
     response_count: int
+    created_at: datetime
     updated_at: datetime
 
     model_config = {"from_attributes": True}

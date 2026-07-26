@@ -178,7 +178,9 @@ export function QuestionInput({ question, value, onChange, onAdvance, accentColo
           }}
         >
           <SelectTrigger className="h-auto w-full border-0 border-b-2 border-foreground/20 py-3 text-2xl focus-visible:ring-0">
-            <SelectValue placeholder="Choose an option" />
+            <SelectValue>
+              {(v: string | null) => question.options.find((o) => String(o.id) === v)?.label ?? "Choose an option"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {question.options.map((option) => (

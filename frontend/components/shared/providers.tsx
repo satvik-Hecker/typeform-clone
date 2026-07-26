@@ -24,7 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
         <TooltipProvider delay={200}>
           {children}
-          <Toaster position="bottom-right" />
+          <Toaster position="bottom-right" richColors />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

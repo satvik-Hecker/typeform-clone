@@ -135,7 +135,7 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
         <Label className="mb-1.5 block text-xs text-muted-foreground">Question type</Label>
         <Select value={question.type} onValueChange={(v) => handleTypeChange(v as QuestionType)}>
           <SelectTrigger className="w-full">
-            <SelectValue />
+            <SelectValue>{(value: QuestionType) => QUESTION_TYPE_LABELS[value]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {QUESTION_TYPES.map((type) => (

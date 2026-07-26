@@ -41,6 +41,7 @@ def list_forms(session: Session = Depends(get_session)):
             status=form.status,
             slug=form.slug,
             response_count=count,
+            created_at=form.created_at,
             updated_at=form.updated_at,
         )
         for form, count in rows
