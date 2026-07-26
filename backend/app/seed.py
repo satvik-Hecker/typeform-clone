@@ -68,6 +68,8 @@ def seed_feedback_form(session: Session, creator: Creator) -> None:
         slug="customer-feedback",
         thank_you_message="Thanks so much for your feedback! 🎉",
         published_at=utcnow() - timedelta(days=10),
+        created_at=utcnow() - timedelta(days=14),
+        updated_at=utcnow() - timedelta(hours=2),
     )
     session.add(form)
     session.flush()
@@ -136,6 +138,8 @@ def seed_job_application_form(session: Session, creator: Creator) -> None:
         slug="job-application-designer",
         thank_you_message="Thanks for applying! We'll be in touch within a week.",
         published_at=utcnow() - timedelta(days=6),
+        created_at=utcnow() - timedelta(days=9),
+        updated_at=utcnow() - timedelta(days=1),
     )
     session.add(form)
     session.flush()
@@ -207,6 +211,8 @@ def seed_draft_event_form(session: Session, creator: Creator) -> None:
         description="Sign up for our upcoming product launch event.",
         status=FormStatus.draft,
         slug="event-registration-draft",
+        created_at=utcnow() - timedelta(days=1),
+        updated_at=utcnow() - timedelta(hours=3),
     )
     session.add(form)
     session.flush()

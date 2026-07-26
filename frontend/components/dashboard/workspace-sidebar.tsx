@@ -3,16 +3,23 @@
 import { FolderKanbanIcon, PlusIcon, TrendingUpIcon } from "lucide-react";
 
 import { CreateFormDialog } from "@/components/dashboard/create-form-dialog";
+import { WorkspaceTitle } from "@/components/dashboard/workspace-title";
 import { Button } from "@/components/ui/button";
 import { comingSoon } from "@/lib/coming-soon";
 
-const RESPONSE_SOFT_CAP = 50;
+const RESPONSE_SOFT_CAP = 100;
 
-export function WorkspaceSidebar({ totalResponses }: { totalResponses: number }) {
+interface WorkspaceSidebarProps {
+  totalResponses: number;
+  workspaceName: string;
+  onRenameWorkspace: (next: string) => void;
+}
+
+export function WorkspaceSidebar({ totalResponses, workspaceName, onRenameWorkspace }: WorkspaceSidebarProps) {
   const progress = Math.min(100, (totalResponses / RESPONSE_SOFT_CAP) * 100);
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col gap-6 border-r p-4">
+    <aside className="flex w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r p-4">
       <CreateFormDialog triggerClassName="w-full justify-center" />
 
       <div>
@@ -27,7 +34,14 @@ export function WorkspaceSidebar({ totalResponses }: { totalResponses: number })
             <PlusIcon className="size-3.5" />
           </button>
         </div>
-        <div className="rounded-md bg-muted px-2.5 py-1.5 text-sm font-medium">My workspace</div>
+        <div className="rounded-md bg-muted px-1 py-0.5">
+          <WorkspaceTitle
+            value={workspaceName}
+            onCommit={onRenameWorkspace}
+            className="w-full text-sm font-medium"
+            autoWidth={false}
+          />
+        </div>
       </div>
 
       <div className="mt-auto space-y-2 border-t pt-4">
@@ -38,7 +52,9 @@ export function WorkspaceSidebar({ totalResponses }: { totalResponses: number })
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div className="h-full rounded-full bg-foreground" style={{ width: `${progress}%` }} />
         </div>
-        <p className="text-xs text-muted-foreground">{totalResponses} collected</p>
+        <p className="text-xs text-muted-foreground">
+          {totalResponses} / {RESPONSE_SOFT_CAP} collected
+        </p>
         <Button
           variant="outline"
           size="sm"
