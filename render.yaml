@@ -9,7 +9,8 @@ services:
     envVars:
       - key: DATABASE_URL
         value: sqlite:///./typeform.db
-      # Set this to your deployed frontend's origin (e.g. https://your-app.vercel.app)
-      # once you know it — Render will prompt for a value when you deploy this blueprint.
+      # If you ever redeploy this to a different Vercel URL, update this (and/or the
+      # matching default in app/config.py) — this value in the Render dashboard always
+      # wins over that code default.
       - key: CORS_ORIGINS
-        sync: false
+        value: http://localhost:3000,https://typeform-clone-liard.vercel.app
