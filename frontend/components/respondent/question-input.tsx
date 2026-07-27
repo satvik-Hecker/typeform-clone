@@ -40,6 +40,7 @@ export function QuestionInput({ question, value, onChange, onAdvance, accentColo
           value={value.value_text ?? ""}
           placeholder={question.placeholder ?? "Type your answer here…"}
           onChange={(e) => onChange({ value_text: e.target.value })}
+          maxLength={question.type === "short_text" ? question.max_value ?? undefined : undefined}
           className="w-full border-b-2 border-foreground/20 bg-transparent pb-3 font-heading text-2xl outline-none placeholder:text-muted-foreground/40 focus:border-foreground sm:text-3xl"
         />
       );
@@ -51,6 +52,7 @@ export function QuestionInput({ question, value, onChange, onAdvance, accentColo
           value={value.value_text ?? ""}
           placeholder={question.placeholder ?? "Type your answer here…"}
           onChange={(e) => onChange({ value_text: e.target.value })}
+          maxLength={question.max_value ?? undefined}
           rows={3}
           className="w-full resize-none border-b-2 border-foreground/20 bg-transparent pb-3 font-heading text-2xl outline-none placeholder:text-muted-foreground/40 focus:border-foreground sm:text-3xl"
         />

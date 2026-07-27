@@ -34,6 +34,11 @@ def validate_answer_format(question: Question, payload: AnswerSubmit) -> None:
         if not EMAIL_RE.match(payload.value_text or ""):
             raise HTTPException(422, detail=f"'{payload.value_text}' is not a valid email address")
 
+    elif question.type in (QuestionType.short_text, QuestionType.long_text):
+        max_length = question.max_value
+        if max_length is not None and len(payload.value_text or "") > max_length:
+            raise HTTPException(422, detail=f"Answer must be at most {int(max_length)} characters")
+
     elif question.type in (QuestionType.number, QuestionType.rating):
         value = payload.value_number
         if question.min_value is not None and value < question.min_value:
