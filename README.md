@@ -2,7 +2,7 @@
 
 A functional clone of Typeform: drag-and-drop form builder, published shareable links, an animated one-question-at-a-time respondent experience, and a results/response dashboard.
 
-> Status: backend and frontend both complete and smoke-tested locally. See [JOURNAL.md](JOURNAL.md) for the running log of decisions. Not yet deployed.
+> Status: backend and frontend both complete and smoke-tested locally. See [JOURNAL.md](JOURNAL.md) for the running log of decisions. Deployment-ready — see [Deployment](#deployment) below.
 
 ## Tech Stack
 
@@ -44,6 +44,29 @@ npm run dev                       # http://localhost:3000
 ```
 
 Visiting `http://localhost:3000` redirects to `/forms` (the dashboard). Seeded forms are immediately visible; open one to reach the builder, or copy a published form's link (`/f/{slug}`) to try the respondent flow.
+
+## Deployment
+
+Backend on [Render](https://render.com), frontend on [Vercel](https://vercel.com) — both have free tiers and the repo is already set up for this pairing.
+
+### Backend (Render)
+
+1. Push this repo to GitHub, then in Render: **New > Blueprint**, point it at the repo. It picks up [`render.yaml`](render.yaml) at the root automatically and builds `backend/Dockerfile`.
+2. Render will prompt for the `CORS_ORIGINS` env var during setup — leave it as-is for now (or set it to `http://localhost:3000`); you'll come back and set it to your real frontend URL in step 6.
+3. Deploy, then note the service's URL (`https://<something>.onrender.com`).
+
+### Frontend (Vercel)
+
+4. In Vercel: **Add New > Project**, import the same repo, and set **Root Directory** to `frontend` (this is a single-repo monorepo, not two separate repos — Vercel needs to be told which subfolder to build).
+5. Add an environment variable `NEXT_PUBLIC_API_URL` = `https://<your-render-url>/api`, then deploy. Note the resulting Vercel URL.
+
+### Wire them together
+
+6. Back in Render's dashboard, set `CORS_ORIGINS` to your Vercel URL (e.g. `https://your-app.vercel.app`) and let it redeploy. Without this, the browser will block every request from the deployed frontend with a CORS error.
+
+### Know before you deploy: the database resets on restart
+
+The database is SQLite — a single file on disk (see `## Assumptions` below for why). Render's free tier (and most free PaaS tiers generally) uses an **ephemeral filesystem**, so that file — and anything collected in it — disappears on every restart, redeploy, or scale-to-zero spin-down. The app already accounts for this: on startup it seeds a default creator and demo forms automatically if the database is empty (see `seed_if_empty()` in `app/seed.py`), so a fresh deploy always boots into a working demo rather than a blank, broken instance. This is fine for demoing the project, but **any real responses collected between restarts will not persist**. If that matters for your use case, the two real fixes are a Render persistent disk (paid) or swapping SQLite for a hosted Postgres instance (Render's free tier includes one) — neither is set up here, since the assignment's scope explicitly allows this kind of simplification.
 
 ## Architecture Overview
 

@@ -10,7 +10,7 @@ relative): `python -m app.seed`
 
 from datetime import timedelta
 
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session, SQLModel, select
 
 from app.database import engine
 from app.models import Answer, Creator, Form, FormStatus, Question, QuestionOption, QuestionType, Response, utcnow
@@ -234,6 +234,27 @@ def seed_draft_event_form(session: Session, creator: Creator) -> None:
                           required=True, order_index=2))
     session.add(Question(form_id=form.id, type=QuestionType.thank_you, order_index=3,
                           title="Thanks for completing this form!"))
+
+
+def seed_if_empty() -> None:
+    """Idempotent bootstrap run on every app startup (see app/main.py's lifespan).
+
+    Deploys on free-tier hosting typically use an ephemeral disk, so the SQLite file is
+    already gone after any restart — this just makes sure a fresh deploy boots with demo
+    data instead of a creator-less database the API can't write to (DEFAULT_CREATOR_ID
+    wouldn't exist). It only acts when the database is genuinely empty, so it never
+    touches real data collected during an already-running instance's lifetime.
+    """
+    with Session(engine) as session:
+        if session.exec(select(Creator)).first():
+            return
+        creator = Creator(email="mehul.sharma0522@gmail.com", name="Mehul Sharma")
+        session.add(creator)
+        session.flush()
+        seed_feedback_form(session, creator)
+        seed_job_application_form(session, creator)
+        seed_draft_event_form(session, creator)
+        session.commit()
 
 
 def main() -> None:
