@@ -180,7 +180,7 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
       <div className="space-y-1.5">
         <Label className="text-sm font-semibold text-foreground">Answer</Label>
         <Select value={question.type} onValueChange={(v) => handleTypeChange(v as QuestionType)}>
-          <SelectTrigger className="h-11 w-full rounded-xl px-3">
+          <SelectTrigger className="h-11 w-full rounded-md px-3">
             <SelectValue>{(value: QuestionType) => <TypeOption type={value} />}</SelectValue>
           </SelectTrigger>
           <SelectContent>
