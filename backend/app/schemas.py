@@ -162,6 +162,7 @@ class ResponseListItem(BaseModel):
     started_at: UTCDateTime
     submitted_at: Optional[UTCDateTime]
     is_complete: bool
+    answers: list[AnswerOut]
 
 
 class ResponseDetail(BaseModel):

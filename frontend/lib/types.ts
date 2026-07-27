@@ -131,6 +131,7 @@ export interface ResponseListItem {
   started_at: string;
   submitted_at: string | null;
   is_complete: boolean;
+  answers: AnswerOut[];
 }
 
 export interface ResponseDetail {

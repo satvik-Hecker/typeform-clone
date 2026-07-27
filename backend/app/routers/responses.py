@@ -21,10 +21,30 @@ def _answerable_questions(form: Form) -> list[Question]:
 
 @router.get("/{form_id}/responses", response_model=list[ResponseListItem])
 def list_responses(form_id: int, session: Session = Depends(get_session)):
-    get_form_or_404(form_id, session)
-    return session.exec(
+    form = get_form_or_404(form_id, session)
+    questions = _answerable_questions(form)
+    option_labels = {option.id: option.label for q in questions for option in q.options}
+
+    responses = session.exec(
         select(Response).where(Response.form_id == form_id).order_by(Response.started_at.desc())
     ).all()
+
+    result = []
+    for response in responses:
+        answers_by_question = {a.question_id: a for a in response.answers}
+        answers = [
+            _answer_out(question, answers_by_question.get(question.id), option_labels) for question in questions
+        ]
+        result.append(
+            ResponseListItem(
+                id=response.id,
+                started_at=response.started_at,
+                submitted_at=response.submitted_at,
+                is_complete=response.is_complete,
+                answers=answers,
+            )
+        )
+    return result
 
 
 # NOTE: this static "/export" route must be registered before the dynamic

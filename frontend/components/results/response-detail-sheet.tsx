@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useResponseQuery } from "@/hooks/use-results";
+import { formatAnswer } from "@/lib/format-answer";
 
 interface ResponseDetailSheetProps {
   formId: number;
@@ -36,7 +37,7 @@ export function ResponseDetailSheet({ formId, responseId, onOpenChange }: Respon
             <div key={answer.question_id}>
               <p className="text-sm font-medium">{answer.question_title}</p>
               <p className="mt-0.5 whitespace-pre-wrap text-sm text-muted-foreground">
-                {formatAnswer(answer)}
+                {formatAnswer(answer, "No answer")}
               </p>
             </div>
           ))}
@@ -44,17 +45,4 @@ export function ResponseDetailSheet({ formId, responseId, onOpenChange }: Respon
       </SheetContent>
     </Sheet>
   );
-}
-
-function formatAnswer(answer: {
-  value_text: string | null;
-  value_number: number | null;
-  value_bool: boolean | null;
-  selected_option_label: string | null;
-}): string {
-  if (answer.selected_option_label != null) return answer.selected_option_label;
-  if (answer.value_bool != null) return answer.value_bool ? "Yes" : "No";
-  if (answer.value_number != null) return String(answer.value_number);
-  if (answer.value_text) return answer.value_text;
-  return "No answer";
 }

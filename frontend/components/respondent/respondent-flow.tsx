@@ -221,7 +221,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
 
       {!completed && !showWelcome && (
         <div className="fixed bottom-6 right-6 z-10 flex items-center gap-3">
-          <div className="flex flex-col overflow-hidden rounded-lg border bg-background shadow-sm">
+          <div className="flex flex-row overflow-hidden rounded-lg border bg-background shadow-sm">
             <button
               type="button"
               onClick={goPrev}
@@ -234,7 +234,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
               type="button"
               onClick={goNext}
               disabled={submitting}
-              className="border-t p-2 text-muted-foreground hover:bg-muted disabled:opacity-30"
+              className="border-l p-2 text-muted-foreground hover:bg-muted disabled:opacity-30"
             >
               <ChevronDownIcon className="size-4" />
             </button>
