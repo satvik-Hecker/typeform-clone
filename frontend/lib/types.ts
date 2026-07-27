@@ -8,7 +8,9 @@ export type QuestionType =
   | "email"
   | "number"
   | "yes_no"
-  | "rating";
+  | "rating"
+  | "welcome"
+  | "thank_you";
 
 export type FormStatus = "draft" | "published";
 
@@ -43,9 +45,6 @@ export interface Form {
   description: string | null;
   status: FormStatus;
   slug: string;
-  thank_you_message: string;
-  welcome_title: string | null;
-  welcome_description: string | null;
   theme: string | null; // JSON-encoded FormTheme
   created_at: string;
   updated_at: string;
@@ -73,9 +72,6 @@ export interface FormCreatePayload {
 export interface FormUpdatePayload {
   title?: string;
   description?: string | null;
-  thank_you_message?: string;
-  welcome_title?: string | null;
-  welcome_description?: string | null;
   theme?: string | null;
 }
 
@@ -184,6 +180,15 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   number: "Number",
   yes_no: "Yes / No",
   rating: "Rating",
+  welcome: "Welcome screen",
+  thank_you: "Thank you screen",
 };
 
 export const CHOICE_QUESTION_TYPES: QuestionType[] = ["multiple_choice", "dropdown"];
+
+/** Structural pages, not real questions — excluded from "Add content", can't change type, no answer. */
+export const NON_ANSWERABLE_QUESTION_TYPES: QuestionType[] = ["welcome", "thank_you"];
+
+export const ANSWERABLE_QUESTION_TYPES: QuestionType[] = (
+  Object.keys(QUESTION_TYPE_LABELS) as QuestionType[]
+).filter((type) => !NON_ANSWERABLE_QUESTION_TYPES.includes(type));

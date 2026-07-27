@@ -10,4 +10,6 @@ export const QUESTION_TYPE_COLORS: Record<QuestionType, string> = {
   number: "bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
   yes_no: "bg-teal-100 text-teal-600 dark:bg-teal-950/40 dark:text-teal-400",
   rating: "bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400",
+  welcome: "bg-slate-100 text-slate-600 dark:bg-slate-800/40 dark:text-slate-400",
+  thank_you: "bg-pink-100 text-pink-600 dark:bg-pink-950/40 dark:text-pink-400",
 };

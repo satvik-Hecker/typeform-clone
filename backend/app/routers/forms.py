@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import Form, FormStatus, Question, QuestionOption, Response, utcnow
+from app.models import Form, FormStatus, Question, QuestionOption, QuestionType, Response, utcnow
 from app.schemas import FormCreate, FormListItem, FormOut, FormUpdate
 
 router = APIRouter()
@@ -57,6 +57,26 @@ def create_form(payload: FormCreate, session: Session = Depends(get_session)):
         slug=_slug(),
     )
     session.add(form)
+    session.flush()  # assigns form.id for the default pages below
+
+    session.add(
+        Question(
+            form_id=form.id,
+            type=QuestionType.welcome,
+            title="Welcome!",
+            description="Thanks for taking the time to fill this out.",
+            order_index=0,
+        )
+    )
+    session.add(
+        Question(
+            form_id=form.id,
+            type=QuestionType.thank_you,
+            title="Thanks for completing this form!",
+            order_index=1,
+        )
+    )
+
     session.commit()
     session.refresh(form)
     return form
@@ -96,7 +116,6 @@ def duplicate_form(form_id: int, session: Session = Depends(get_session)):
         description=original.description,
         status=FormStatus.draft,
         slug=_slug(),
-        thank_you_message=original.thank_you_message,
         theme=original.theme,
     )
     session.add(copy)

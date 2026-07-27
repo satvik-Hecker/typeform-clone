@@ -8,7 +8,7 @@ import re
 
 from fastapi import HTTPException
 
-from app.models import CHOICE_TYPES, Question, QuestionType
+from app.models import CHOICE_TYPES, NON_ANSWERABLE_TYPES, Question, QuestionType
 from app.schemas import AnswerSubmit
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -53,7 +53,7 @@ def validate_answer_format(question: Question, payload: AnswerSubmit) -> None:
 
 
 def validate_required(question: Question, payload: AnswerSubmit | None) -> None:
-    if not question.required:
+    if question.type in NON_ANSWERABLE_TYPES or not question.required:
         return
     if payload is None or answer_is_empty(question.type, payload):
         raise HTTPException(422, detail=f"'{question.title}' is required")

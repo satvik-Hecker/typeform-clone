@@ -125,7 +125,7 @@ export function BuilderToolbar({ form, device, onDeviceChange, onQuestionCreated
 
       <LivePreviewModal form={form} open={previewOpen} onOpenChange={setPreviewOpen} />
       <DesignDialog form={form} open={designOpen} onOpenChange={setDesignOpen} />
-      <FormSettingsDialog form={form} open={settingsOpen} onOpenChange={setSettingsOpen} defaultTab="general" />
+      <FormSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 }

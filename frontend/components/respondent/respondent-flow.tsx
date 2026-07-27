@@ -22,16 +22,24 @@ interface RespondentFlowProps {
 }
 
 export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
-  const questions = form.questions;
+  // Welcome/thank-you are real pages in form.questions (type "welcome" / "thank_you"), not
+  // form-level fields — pull them out so the numbered question loop below only ever sees
+  // actual answerable questions.
+  const welcomeQuestion = useMemo(() => form.questions.find((q) => q.type === "welcome"), [form.questions]);
+  const thankYouQuestion = useMemo(() => form.questions.find((q) => q.type === "thank_you"), [form.questions]);
+  const questions = useMemo(
+    () => form.questions.filter((q) => q.type !== "welcome" && q.type !== "thank_you"),
+    [form.questions]
+  );
+
   const [responseId, setResponseId] = useState<number | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [answers, setAnswers] = useState<Record<number, AnswerSubmitPayload>>({});
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
-  const [thankYouMessage, setThankYouMessage] = useState(form.thank_you_message);
   const [submitting, setSubmitting] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(!!form.welcome_title);
+  const [showWelcome, setShowWelcome] = useState(!!welcomeQuestion?.title.trim());
 
   const startedRef = useRef(false);
 
@@ -85,8 +93,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
       if (mode === "live" && responseId) {
         setSubmitting(true);
         try {
-          const res = await api.public.submit(responseId);
-          setThankYouMessage(res.thank_you_message);
+          await api.public.submit(responseId);
           setCompleted(true);
         } catch (err) {
           toast.error(err instanceof ApiError ? err.message : "Couldn't submit your response");
@@ -94,7 +101,6 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
           setSubmitting(false);
         }
       } else {
-        setThankYouMessage(form.thank_you_message);
         setCompleted(true);
       }
       return;
@@ -102,7 +108,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
 
     setDirection(1);
     setCurrentIndex((i) => i + 1);
-  }, [answers, currentIndex, mode, questions, responseId, form.thank_you_message]);
+  }, [answers, currentIndex, mode, questions, responseId]);
 
   // QuestionInput schedules auto-advance via setTimeout right after calling onChange.
   // Since onChange triggers a state update, `goNext` (which depends on `answers`) is
@@ -187,13 +193,16 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
           {showWelcome ? (
             <WelcomeScreen
               key="welcome"
-              title={form.welcome_title as string}
-              description={form.welcome_description}
+              title={welcomeQuestion?.title ?? ""}
+              description={welcomeQuestion?.description ?? null}
               onStart={() => setShowWelcome(false)}
               accentColor={accentColor}
             />
           ) : completed ? (
-            <ThankYouScreen key="thank-you" message={thankYouMessage} />
+            <ThankYouScreen
+              key="thank-you"
+              message={thankYouQuestion?.title || "Thanks for completing this form!"}
+            />
           ) : (
             <QuestionSlide
               key={question.id}

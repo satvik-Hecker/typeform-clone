@@ -23,6 +23,7 @@ import { comingSoon } from "@/lib/coming-soon";
 import { QUESTION_TYPE_ICONS } from "@/lib/question-type-icons";
 import { QUESTION_TYPE_COLORS } from "@/lib/question-type-color";
 import {
+  ANSWERABLE_QUESTION_TYPES,
   CHOICE_QUESTION_TYPES,
   QUESTION_TYPE_LABELS,
   type Question,
@@ -30,7 +31,6 @@ import {
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const QUESTION_TYPES = Object.keys(QUESTION_TYPE_LABELS) as QuestionType[];
 const RATING_SCALES = [3, 4, 5, 6, 7, 8, 9, 10];
 const DEFAULT_MAX_CHARACTERS = "100";
 
@@ -192,6 +192,33 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
     setOptions((prev) => prev.filter((o) => o.key !== key));
   }
 
+  if (question.type === "welcome" || question.type === "thank_you") {
+    return (
+      <div className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l bg-background p-4">
+        <div className="space-y-1.5">
+          <Label className="text-sm font-semibold text-foreground">Page type</Label>
+          <div className="flex h-11 w-full items-center gap-2.5 rounded-md border px-3 text-sm">
+            <TypeOption type={question.type} />
+          </div>
+        </div>
+
+        <Separator />
+
+        <p className="text-sm text-muted-foreground">
+          {question.type === "welcome"
+            ? "The first thing respondents see, before question 1. Edit the heading and description directly in the canvas."
+            : "Shown after a respondent submits the form. Edit the message directly in the canvas."}
+        </p>
+
+        <div className="mt-auto border-t pt-4">
+          <Button variant="destructive" size="sm" className="w-full" onClick={handleDelete}>
+            Delete page
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l bg-background p-4">
       <div className="space-y-1.5">
@@ -201,7 +228,7 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
             <SelectValue>{(value: QuestionType) => <TypeOption type={value} />}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {QUESTION_TYPES.map((type) => (
+            {ANSWERABLE_QUESTION_TYPES.map((type) => (
               <SelectItem key={type} value={type}>
                 <TypeOption type={type} />
               </SelectItem>

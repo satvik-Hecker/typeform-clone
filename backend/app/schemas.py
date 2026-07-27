@@ -102,9 +102,6 @@ class FormCreate(BaseModel):
 class FormUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    thank_you_message: Optional[str] = None
-    welcome_title: Optional[str] = None
-    welcome_description: Optional[str] = None
     theme: Optional[str] = None
 
 
@@ -126,9 +123,6 @@ class FormOut(BaseModel):
     description: Optional[str]
     status: FormStatus
     slug: str
-    thank_you_message: str
-    welcome_title: Optional[str]
-    welcome_description: Optional[str]
     theme: Optional[str]
     created_at: UTCDateTime
     updated_at: UTCDateTime

@@ -66,9 +66,6 @@ def seed_feedback_form(session: Session, creator: Creator) -> None:
         description="Help us improve — takes less than 2 minutes.",
         status=FormStatus.published,
         slug="customer-feedback",
-        thank_you_message="Thanks so much for your feedback! 🎉",
-        welcome_title="Help us make our product better",
-        welcome_description="This survey takes less than 2 minutes and your answers directly shape what we build next.",
         published_at=utcnow() - timedelta(days=10),
         created_at=utcnow() - timedelta(days=14),
         updated_at=utcnow() - timedelta(hours=2),
@@ -76,24 +73,33 @@ def seed_feedback_form(session: Session, creator: Creator) -> None:
     session.add(form)
     session.flush()
 
+    q_welcome = Question(
+        form_id=form.id, type=QuestionType.welcome, order_index=0,
+        title="Help us make our product better",
+        description="This survey takes less than 2 minutes and your answers directly shape what we build next.",
+    )
     q_name = Question(form_id=form.id, type=QuestionType.short_text, title="What's your name?",
-                       required=True, order_index=0, placeholder="Jane Doe")
+                       required=True, order_index=1, placeholder="Jane Doe")
     q_email = Question(form_id=form.id, type=QuestionType.email, title="What's your email?",
-                        required=True, order_index=1, placeholder="jane@example.com")
+                        required=True, order_index=2, placeholder="jane@example.com")
     q_rating = Question(form_id=form.id, type=QuestionType.rating,
                          title="How satisfied are you with our product?",
                          description="1 = very dissatisfied, 5 = very satisfied",
-                         required=True, order_index=2, min_value=1, max_value=5)
+                         required=True, order_index=3, min_value=1, max_value=5)
     q_source = Question(form_id=form.id, type=QuestionType.multiple_choice,
-                         title="How did you hear about us?", required=False, order_index=3)
+                         title="How did you hear about us?", required=False, order_index=4)
     q_recommend = Question(form_id=form.id, type=QuestionType.yes_no,
-                            title="Would you recommend us to a friend?", required=True, order_index=4)
+                            title="Would you recommend us to a friend?", required=True, order_index=5)
     q_comments = Question(form_id=form.id, type=QuestionType.long_text,
                            title="Any other comments?",
                            description="Optional — anything else you'd like us to know.",
-                           required=False, order_index=5)
+                           required=False, order_index=6)
+    q_thanks = Question(
+        form_id=form.id, type=QuestionType.thank_you, order_index=7,
+        title="Thanks so much for your feedback! 🎉",
+    )
 
-    session.add_all([q_name, q_email, q_rating, q_source, q_recommend, q_comments])
+    session.add_all([q_welcome, q_name, q_email, q_rating, q_source, q_recommend, q_comments, q_thanks])
     session.flush()
 
     for i, label in enumerate(["Social media", "Friend or colleague", "Search engine", "Advertisement"]):
@@ -138,7 +144,6 @@ def seed_job_application_form(session: Session, creator: Creator) -> None:
         description="Apply for the Product Designer role on our team.",
         status=FormStatus.published,
         slug="job-application-designer",
-        thank_you_message="Thanks for applying! We'll be in touch within a week.",
         published_at=utcnow() - timedelta(days=6),
         created_at=utcnow() - timedelta(days=9),
         updated_at=utcnow() - timedelta(days=1),
@@ -146,24 +151,27 @@ def seed_job_application_form(session: Session, creator: Creator) -> None:
     session.add(form)
     session.flush()
 
+    q_welcome = Question(form_id=form.id, type=QuestionType.welcome, order_index=0, title="Welcome!")
     q_name = Question(form_id=form.id, type=QuestionType.short_text, title="Full name",
-                       required=True, order_index=0)
+                       required=True, order_index=1)
     q_email = Question(form_id=form.id, type=QuestionType.email, title="Email address",
-                        required=True, order_index=1)
+                        required=True, order_index=2)
     q_experience = Question(form_id=form.id, type=QuestionType.number,
-                             title="Years of relevant experience", required=True, order_index=2,
+                             title="Years of relevant experience", required=True, order_index=3,
                              min_value=0, max_value=50)
     q_position = Question(form_id=form.id, type=QuestionType.dropdown, title="Which team are you applying to?",
-                           required=True, order_index=3)
+                           required=True, order_index=4)
     q_relocate = Question(form_id=form.id, type=QuestionType.yes_no,
-                           title="Are you willing to relocate?", required=True, order_index=4)
+                           title="Are you willing to relocate?", required=True, order_index=5)
     q_why = Question(form_id=form.id, type=QuestionType.long_text,
-                      title="Why do you want to work with us?", required=True, order_index=5)
+                      title="Why do you want to work with us?", required=True, order_index=6)
     q_skill = Question(form_id=form.id, type=QuestionType.rating, title="Rate your Figma proficiency",
                         description="1 = beginner, 10 = expert",
-                        required=True, order_index=6, min_value=1, max_value=10)
+                        required=True, order_index=7, min_value=1, max_value=10)
+    q_thanks = Question(form_id=form.id, type=QuestionType.thank_you, order_index=8,
+                         title="Thanks for applying! We'll be in touch within a week.")
 
-    session.add_all([q_name, q_email, q_experience, q_position, q_relocate, q_why, q_skill])
+    session.add_all([q_welcome, q_name, q_email, q_experience, q_position, q_relocate, q_why, q_skill, q_thanks])
     session.flush()
 
     for i, label in enumerate(["Product Design", "Brand Design", "UX Research"]):
@@ -219,10 +227,13 @@ def seed_draft_event_form(session: Session, creator: Creator) -> None:
     session.add(form)
     session.flush()
 
+    session.add(Question(form_id=form.id, type=QuestionType.welcome, order_index=0, title="Welcome!"))
     session.add(Question(form_id=form.id, type=QuestionType.short_text, title="Full name",
-                          required=True, order_index=0))
-    session.add(Question(form_id=form.id, type=QuestionType.email, title="Email address",
                           required=True, order_index=1))
+    session.add(Question(form_id=form.id, type=QuestionType.email, title="Email address",
+                          required=True, order_index=2))
+    session.add(Question(form_id=form.id, type=QuestionType.thank_you, order_index=3,
+                          title="Thanks for completing this form!"))
 
 
 def main() -> None:

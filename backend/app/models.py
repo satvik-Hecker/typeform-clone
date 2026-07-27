@@ -36,9 +36,17 @@ class QuestionType(str, enum.Enum):
     number = "number"
     yes_no = "yes_no"
     rating = "rating"
+    # Structural pages, not answerable questions — see NON_ANSWERABLE_TYPES below.
+    welcome = "welcome"
+    thank_you = "thank_you"
 
 
 CHOICE_TYPES = {QuestionType.multiple_choice, QuestionType.dropdown}
+
+# Welcome/thank-you are ordinary Question rows (so they're reorderable and editable like
+# any other page) but carry no answer: excluded from required-checks, answer submission,
+# and results/export, and every form gets exactly one of each at creation time.
+NON_ANSWERABLE_TYPES = {QuestionType.welcome, QuestionType.thank_you}
 
 
 class Creator(SQLModel, table=True):
@@ -61,11 +69,6 @@ class Form(SQLModel, table=True):
     description: Optional[str] = None
     status: FormStatus = Field(default=FormStatus.draft, index=True)
     slug: str = Field(unique=True, index=True)
-    thank_you_message: str = Field(default="Thanks for completing this form!")
-    # A welcome screen is shown before question 1 only when welcome_title is set;
-    # otherwise the respondent flow skips straight to the first question.
-    welcome_title: Optional[str] = None
-    welcome_description: Optional[str] = None
     theme: Optional[str] = None  # JSON-encoded: {primaryColor, fontFamily, backgroundColor}
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

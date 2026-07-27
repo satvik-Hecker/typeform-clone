@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
 from app.database import get_session
-from app.models import Question, QuestionOption, utcnow
+from app.models import NON_ANSWERABLE_TYPES, Question, QuestionOption, QuestionType, utcnow
 from app.routers.forms import get_form_or_404
 from app.schemas import QuestionCreate, QuestionOut, QuestionUpdate, ReorderRequest
 
@@ -20,9 +20,22 @@ def _get_question_or_404(form_id: int, question_id: int, session: Session) -> Qu
 def create_question(form_id: int, payload: QuestionCreate, session: Session = Depends(get_session)):
     form = get_form_or_404(form_id, session)
 
+    if payload.type in NON_ANSWERABLE_TYPES:
+        raise HTTPException(400, detail="Every form already has exactly one welcome and one thank-you page")
+
     order_index = payload.order_index
     if order_index is None:
-        order_index = max((q.order_index for q in form.questions), default=-1) + 1
+        # New questions land right before the thank-you page (if any) rather than at the
+        # absolute end, so the ending page stays last without the creator having to reorder it.
+        thank_you = next((q for q in form.questions if q.type == QuestionType.thank_you), None)
+        if thank_you is not None:
+            order_index = thank_you.order_index
+            for q in form.questions:
+                if q.order_index >= order_index:
+                    q.order_index += 1
+                    session.add(q)
+        else:
+            order_index = max((q.order_index for q in form.questions), default=-1) + 1
 
     question = Question(
         form_id=form_id,
@@ -51,6 +64,10 @@ def update_question(
     form_id: int, question_id: int, payload: QuestionUpdate, session: Session = Depends(get_session)
 ):
     question = _get_question_or_404(form_id, question_id, session)
+
+    if payload.type is not None and payload.type != question.type:
+        if payload.type in NON_ANSWERABLE_TYPES or question.type in NON_ANSWERABLE_TYPES:
+            raise HTTPException(400, detail="The welcome and thank-you pages can't change type")
 
     for key, value in payload.model_dump(exclude_unset=True, exclude={"options"}).items():
         setattr(question, key, value)

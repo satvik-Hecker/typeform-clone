@@ -8,11 +8,15 @@ from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import CHOICE_TYPES, Answer, Question, QuestionType, Response
+from app.models import CHOICE_TYPES, NON_ANSWERABLE_TYPES, Answer, Form, Question, QuestionType, Response
 from app.routers.forms import get_form_or_404
 from app.schemas import AnswerOut, ChoiceCount, FormSummary, QuestionSummary, ResponseDetail, ResponseListItem
 
 router = APIRouter()
+
+
+def _answerable_questions(form: Form) -> list[Question]:
+    return [q for q in form.questions if q.type not in NON_ANSWERABLE_TYPES]
 
 
 @router.get("/{form_id}/responses", response_model=list[ResponseListItem])
@@ -30,17 +34,16 @@ def list_responses(form_id: int, session: Session = Depends(get_session)):
 @router.get("/{form_id}/responses/export")
 def export_responses_csv(form_id: int, session: Session = Depends(get_session)):
     form = get_form_or_404(form_id, session)
+    questions = _answerable_questions(form)
     responses = session.exec(
         select(Response).where(Response.form_id == form_id).order_by(Response.started_at)
     ).all()
 
-    option_labels = {option.id: option.label for q in form.questions for option in q.options}
+    option_labels = {option.id: option.label for q in questions for option in q.options}
 
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    writer.writerow(
-        ["response_id", "started_at", "submitted_at", "is_complete"] + [q.title for q in form.questions]
-    )
+    writer.writerow(["response_id", "started_at", "submitted_at", "is_complete"] + [q.title for q in questions])
 
     for response in responses:
         answers_by_question = {a.question_id: a for a in response.answers}
@@ -50,7 +53,7 @@ def export_responses_csv(form_id: int, session: Session = Depends(get_session)):
             response.submitted_at.isoformat() if response.submitted_at else "",
             response.is_complete,
         ]
-        for question in form.questions:
+        for question in questions:
             row.append(_format_answer_for_csv(question, answers_by_question.get(question.id), option_labels))
         writer.writerow(row)
 
@@ -81,10 +84,11 @@ def get_response(form_id: int, response_id: int, session: Session = Depends(get_
     if not response or response.form_id != form_id:
         raise HTTPException(404, detail="Response not found")
 
-    option_labels = {option.id: option.label for q in form.questions for option in q.options}
+    questions = _answerable_questions(form)
+    option_labels = {option.id: option.label for q in questions for option in q.options}
     answers_by_question = {a.question_id: a for a in response.answers}
     answers = [
-        _answer_out(question, answers_by_question.get(question.id), option_labels) for question in form.questions
+        _answer_out(question, answers_by_question.get(question.id), option_labels) for question in questions
     ]
 
     return ResponseDetail(
@@ -127,7 +131,7 @@ def get_summary(form_id: int, session: Session = Depends(get_session)):
     responses = session.exec(select(Response).where(Response.form_id == form_id)).all()
 
     question_summaries = []
-    for question in form.questions:
+    for question in _answerable_questions(form):
         all_answers = session.exec(select(Answer).where(Answer.question_id == question.id)).all()
         answered = [a for a in all_answers if not _is_answer_blank(question.type, a)]
 

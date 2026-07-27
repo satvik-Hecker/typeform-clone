@@ -13,9 +13,7 @@ import {
 import { useCreateQuestion } from "@/hooks/use-form";
 import { ApiError } from "@/lib/api";
 import { QUESTION_TYPE_ICONS } from "@/lib/question-type-icons";
-import { QUESTION_TYPE_LABELS, type QuestionType } from "@/lib/types";
-
-const QUESTION_TYPES = Object.keys(QUESTION_TYPE_LABELS) as QuestionType[];
+import { ANSWERABLE_QUESTION_TYPES, QUESTION_TYPE_LABELS, type QuestionType } from "@/lib/types";
 
 interface AddQuestionMenuProps {
   formId: number;
@@ -50,7 +48,7 @@ export function AddQuestionMenu({ formId, onCreated }: AddQuestionMenuProps) {
         }
       />
       <DropdownMenuContent align="start" className="w-56">
-        {QUESTION_TYPES.map((type) => {
+        {ANSWERABLE_QUESTION_TYPES.map((type) => {
           const Icon = QUESTION_TYPE_ICONS[type];
           return (
             <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>

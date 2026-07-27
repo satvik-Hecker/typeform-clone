@@ -3,8 +3,10 @@ import {
   CaseSensitiveIcon,
   ChevronDownSquareIcon,
   CircleCheckIcon,
+  HandIcon,
   HashIcon,
   MailIcon,
+  PartyPopperIcon,
   StarIcon,
   ToggleLeftIcon,
   type LucideIcon,
@@ -20,4 +22,6 @@ export const QUESTION_TYPE_ICONS: Record<QuestionType, LucideIcon> = {
   number: HashIcon,
   yes_no: ToggleLeftIcon,
   rating: StarIcon,
+  welcome: HandIcon,
+  thank_you: PartyPopperIcon,
 };

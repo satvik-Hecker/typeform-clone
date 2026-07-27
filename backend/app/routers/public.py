@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import Answer, Form, FormStatus, Question, Response, utcnow
+from app.models import NON_ANSWERABLE_TYPES, Answer, Form, FormStatus, Question, QuestionType, Response, utcnow
 from app.schemas import AnswerSubmit, FormOut, ResponseStartOut
 from app.validation import validate_answer_format, validate_required
 
@@ -54,6 +54,8 @@ def upsert_answer(
     question = session.get(Question, question_id)
     if not question or question.form_id != response.form_id:
         raise HTTPException(404, detail="Question not found on this form")
+    if question.type in NON_ANSWERABLE_TYPES:
+        raise HTTPException(400, detail="This page doesn't accept answers")
 
     validate_answer_format(question, payload)
 
@@ -79,6 +81,8 @@ def submit_response(response_id: int, session: Session = Depends(get_session)):
     answers_by_question = {a.question_id: a for a in response.answers}
 
     for question in form.questions:
+        if question.type in NON_ANSWERABLE_TYPES:
+            continue
         payload = None
         answer = answers_by_question.get(question.id)
         if answer:
@@ -94,4 +98,6 @@ def submit_response(response_id: int, session: Session = Depends(get_session)):
     response.submitted_at = utcnow()
     session.add(response)
     session.commit()
-    return {"thank_you_message": form.thank_you_message}
+
+    thank_you = next((q for q in form.questions if q.type == QuestionType.thank_you), None)
+    return {"thank_you_message": thank_you.title if thank_you else "Thanks for completing this form!"}

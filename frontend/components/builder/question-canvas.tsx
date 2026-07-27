@@ -107,7 +107,7 @@ export function QuestionCanvas({ formId, question, index, device, theme }: Quest
                 className="min-w-0 flex-1 resize-none bg-transparent font-heading text-2xl font-bold outline-none placeholder:text-muted-foreground/40 [field-sizing:content]"
               />
               {question.required && (
-                <span className="mt-1.5 shrink-0 text-base" aria-hidden>
+                <span className="mt-1.5 shrink-0 text-lg" aria-hidden>
                   *
                 </span>
               )}
