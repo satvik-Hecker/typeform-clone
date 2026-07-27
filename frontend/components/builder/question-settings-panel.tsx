@@ -113,6 +113,18 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question.id]);
 
+  // Options can also be added from the canvas (the "Add choices" shortcut) while this panel is open for
+  // the same question — resync the local draft whenever the server's option set actually changes.
+  const optionsSignature = question.options.map((o) => `${o.id}:${o.label}`).join(" ");
+  const lastSyncedOptionsSignature = useRef(optionsSignature);
+  useEffect(() => {
+    if (optionsSignature === lastSyncedOptionsSignature.current) return;
+    lastSyncedOptionsSignature.current = optionsSignature;
+    setOptions(toDraftOptions(question));
+    skipNextSave.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionsSignature]);
+
   useEffect(() => {
     if (skipNextSave.current) {
       skipNextSave.current = false;

@@ -47,15 +47,20 @@ export function QuestionInput({ question, value, onChange, onAdvance, accentColo
 
     case "long_text":
       return (
-        <textarea
-          ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-          value={value.value_text ?? ""}
-          placeholder={question.placeholder ?? "Type your answer here…"}
-          onChange={(e) => onChange({ value_text: e.target.value })}
-          maxLength={question.max_value ?? undefined}
-          rows={3}
-          className="w-full resize-none border-b-2 border-foreground/20 bg-transparent pb-3 font-heading text-2xl outline-none placeholder:text-muted-foreground/40 focus:border-foreground sm:text-3xl"
-        />
+        <div>
+          <textarea
+            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+            value={value.value_text ?? ""}
+            placeholder={question.placeholder ?? "Type your answer here…"}
+            onChange={(e) => onChange({ value_text: e.target.value })}
+            maxLength={question.max_value ?? undefined}
+            rows={3}
+            className="w-full resize-none border-b-2 border-foreground/20 bg-transparent pb-3 font-heading text-2xl outline-none placeholder:text-muted-foreground/40 focus:border-foreground sm:text-3xl"
+          />
+          <span className="mt-2 block text-xs text-muted-foreground">
+            Shift <kbd className="rounded border px-1 py-0.5 font-sans">↵</kbd> to make a line break
+          </span>
+        </div>
       );
 
     case "number":

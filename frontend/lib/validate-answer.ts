@@ -31,3 +31,9 @@ export function validateAnswer(question: Question, value: AnswerSubmitPayload): 
 
   return null;
 }
+
+/** Format-only validation for the builder canvas preview — skips the "required" nag since nothing's being submitted. */
+export function previewValidate(question: Question, value: AnswerSubmitPayload): string | null {
+  if (isAnswerEmpty(question, value)) return null;
+  return validateAnswer(question, value);
+}

@@ -50,7 +50,11 @@ export function QuestionSlide({
         <div className="min-w-0 flex-1">
           <h2 className="font-heading text-2xl font-bold leading-tight sm:text-3xl">
             {question.title}
-            {question.required && <span className="ml-1 align-super text-base text-destructive">*</span>}
+            {question.required && (
+              <span className="align-super text-base" aria-hidden>
+                *
+              </span>
+            )}
           </h2>
           {question.description && (
             <p className="mt-2 text-base text-muted-foreground">{question.description}</p>
