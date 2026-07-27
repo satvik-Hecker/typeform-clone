@@ -5,7 +5,7 @@ import { AlertCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { QuestionInput } from "@/components/respondent/question-input";
-import { useUpdateQuestion } from "@/hooks/use-form";
+import { usePatchQuestionCache, useUpdateQuestion } from "@/hooks/use-form";
 import { ApiError } from "@/lib/api";
 import { parseFormTheme, themeFontStyle } from "@/lib/theme";
 import { CHOICE_QUESTION_TYPES } from "@/lib/types";
@@ -23,6 +23,7 @@ interface QuestionCanvasProps {
 
 export function QuestionCanvas({ formId, question, index, device, theme }: QuestionCanvasProps) {
   const updateQuestion = useUpdateQuestion(formId);
+  const patchQuestionCache = usePatchQuestionCache(formId);
   const [title, setTitle] = useState(question.title);
   const [description, setDescription] = useState(question.description ?? "");
   const [previewValue, setPreviewValue] = useState<AnswerSubmitPayload>({});
@@ -46,7 +47,7 @@ export function QuestionCanvas({ formId, question, index, device, theme }: Quest
     const handle = setTimeout(() => {
       updateQuestion.mutate({
         questionId: question.id,
-        payload: { title: title.trim() || "Untitled question", description: description.trim() || null },
+        payload: { title: title.trim(), description: description.trim() || null },
       });
     }, 600);
     return () => clearTimeout(handle);
@@ -72,7 +73,7 @@ export function QuestionCanvas({ formId, question, index, device, theme }: Quest
   const isChoice = CHOICE_QUESTION_TYPES.includes(question.type);
 
   return (
-    <div className="flex flex-1 items-start justify-center overflow-y-auto bg-muted/30 p-10">
+    <div className="flex flex-1 items-center justify-center overflow-y-auto bg-muted/30 p-10">
       <div
         className={cn(
           "w-full rounded-2xl bg-background p-10 shadow-sm ring-1 ring-border transition-[max-width] duration-200 font-sans",
@@ -81,12 +82,17 @@ export function QuestionCanvas({ formId, question, index, device, theme }: Quest
         style={themeFontStyle(parseFormTheme(theme))}
       >
         <div className="flex items-start gap-2">
-          <span className="mt-1.5 shrink-0 font-heading text-lg text-muted-foreground">{index + 1} →</span>
+          <div className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-md bg-foreground font-heading text-xs font-semibold text-background">
+            {index + 1}
+          </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline gap-0.5">
               <input
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  patchQuestionCache(question.id, { title: e.target.value });
+                }}
                 placeholder="Question title"
                 className="min-w-[2ch] max-w-full bg-transparent font-heading text-2xl font-bold outline-none placeholder:text-muted-foreground/40 [field-sizing:content]"
               />
@@ -98,7 +104,10 @@ export function QuestionCanvas({ formId, question, index, device, theme }: Quest
             </div>
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                patchQuestionCache(question.id, { description: e.target.value || null });
+              }}
               placeholder="Description (optional)"
               rows={1}
               className="mt-1 w-full resize-none bg-transparent text-sm italic text-muted-foreground outline-none placeholder:italic placeholder:text-muted-foreground/50"

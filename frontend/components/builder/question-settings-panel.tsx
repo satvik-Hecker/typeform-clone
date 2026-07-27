@@ -17,7 +17,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useDeleteQuestion, useUpdateQuestion } from "@/hooks/use-form";
+import { useDeleteQuestion, usePatchQuestionCache, useUpdateQuestion } from "@/hooks/use-form";
 import { ApiError } from "@/lib/api";
 import { comingSoon } from "@/lib/coming-soon";
 import { QUESTION_TYPE_ICONS } from "@/lib/question-type-icons";
@@ -89,6 +89,7 @@ interface QuestionSettingsPanelProps {
 export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionSettingsPanelProps) {
   const updateQuestion = useUpdateQuestion(formId);
   const deleteQuestion = useDeleteQuestion(formId);
+  const patchQuestionCache = usePatchQuestionCache(formId);
 
   const [placeholder, setPlaceholder] = useState(question.placeholder ?? "");
   const [placeholderEnabled, setPlaceholderEnabled] = useState((question.placeholder ?? "").trim() !== "");
@@ -156,6 +157,7 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
   }, [placeholder, minValue, maxValue, options]);
 
   function handleRequiredChange(checked: boolean) {
+    patchQuestionCache(question.id, { required: checked });
     updateQuestion.mutate(
       { questionId: question.id, payload: { required: checked } },
       { onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't save changes") }
@@ -164,6 +166,7 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
 
   function handleTypeChange(type: QuestionType) {
     if (type === question.type) return;
+    patchQuestionCache(question.id, { type });
     updateQuestion.mutate(
       { questionId: question.id, payload: { type } },
       { onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't change type") }
@@ -219,11 +222,25 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
             <SettingRow label="Max characters">
               <Switch
                 checked={maxValue.trim() !== ""}
-                onCheckedChange={(checked) => setMaxValue(checked ? DEFAULT_MAX_CHARACTERS : "")}
+                onCheckedChange={(checked) => {
+                  const next = checked ? DEFAULT_MAX_CHARACTERS : "";
+                  setMaxValue(next);
+                  patchQuestionCache(question.id, { max_value: next === "" ? null : Number(next) });
+                }}
               />
             </SettingRow>
             {maxValue.trim() !== "" && (
-              <Input type="number" min={1} value={maxValue} onChange={(e) => setMaxValue(e.target.value)} />
+              <Input
+                type="number"
+                min={1}
+                value={maxValue}
+                onChange={(e) => {
+                  setMaxValue(e.target.value);
+                  patchQuestionCache(question.id, {
+                    max_value: e.target.value.trim() === "" ? null : Number(e.target.value),
+                  });
+                }}
+              />
             )}
           </>
         )}
@@ -237,7 +254,10 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
                 checked={placeholderEnabled}
                 onCheckedChange={(checked) => {
                   setPlaceholderEnabled(checked);
-                  if (!checked) setPlaceholder("");
+                  if (!checked) {
+                    setPlaceholder("");
+                    patchQuestionCache(question.id, { placeholder: null });
+                  }
                 }}
               />
             </SettingRow>
@@ -245,7 +265,10 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
               <Input
                 placeholder="Shown inside the answer field"
                 value={placeholder}
-                onChange={(e) => setPlaceholder(e.target.value)}
+                onChange={(e) => {
+                  setPlaceholder(e.target.value);
+                  patchQuestionCache(question.id, { placeholder: e.target.value || null });
+                }}
                 autoFocus
               />
             )}
@@ -258,20 +281,46 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
               <Label htmlFor="min-value" className="text-xs text-muted-foreground">
                 Min
               </Label>
-              <Input id="min-value" type="number" value={minValue} onChange={(e) => setMinValue(e.target.value)} />
+              <Input
+                id="min-value"
+                type="number"
+                value={minValue}
+                onChange={(e) => {
+                  setMinValue(e.target.value);
+                  patchQuestionCache(question.id, {
+                    min_value: e.target.value.trim() === "" ? null : Number(e.target.value),
+                  });
+                }}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="max-value" className="text-xs text-muted-foreground">
                 Max
               </Label>
-              <Input id="max-value" type="number" value={maxValue} onChange={(e) => setMaxValue(e.target.value)} />
+              <Input
+                id="max-value"
+                type="number"
+                value={maxValue}
+                onChange={(e) => {
+                  setMaxValue(e.target.value);
+                  patchQuestionCache(question.id, {
+                    max_value: e.target.value.trim() === "" ? null : Number(e.target.value),
+                  });
+                }}
+              />
             </div>
           </div>
         )}
 
         {question.type === "rating" && (
           <div className="grid grid-cols-2 gap-3">
-            <Select value={maxValue || "5"} onValueChange={(v) => setMaxValue(v ?? "")}>
+            <Select
+              value={maxValue || "5"}
+              onValueChange={(v) => {
+                setMaxValue(v ?? "");
+                patchQuestionCache(question.id, { max_value: v ? Number(v) : null });
+              }}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>

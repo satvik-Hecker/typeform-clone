@@ -27,7 +27,7 @@ export function AddQuestionMenu({ formId, onCreated }: AddQuestionMenuProps) {
 
   function handleAdd(type: QuestionType) {
     createQuestion.mutate(
-      { type, title: "Untitled question", required: false },
+      { type, title: "", required: false },
       {
         onSuccess: (question) => {
           onCreated?.(question.id);
