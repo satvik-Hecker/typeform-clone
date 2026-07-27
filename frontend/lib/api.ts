@@ -13,11 +13,20 @@ import type {
   ResponseStartOut,
 } from "./types";
 
+// Normalizes whatever base URL we're given so it always ends in exactly one "/api" —
+// protects against NEXT_PUBLIC_API_URL being set to the bare backend origin (no /api
+// suffix) on the host, which an explicit-but-wrong env var would otherwise lock in.
+function normalizeApiBase(url: string): string {
+  const trimmed = url.replace(/\/+$/, "");
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+}
+
 // Falls back to the deployed backend when running anywhere other than localhost, so a missing
 // (not just misconfigured) NEXT_PUBLIC_API_URL on Vercel doesn't silently point at 127.0.0.1.
-// An explicit NEXT_PUBLIC_API_URL — local or on Vercel — always takes precedence over this.
+// An explicit NEXT_PUBLIC_API_URL — local or on Vercel — always takes precedence over this,
+// but still gets normalized above in case it's missing the /api suffix.
 function resolveApiUrl(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (process.env.NEXT_PUBLIC_API_URL) return normalizeApiBase(process.env.NEXT_PUBLIC_API_URL);
   const isLocalhost =
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
