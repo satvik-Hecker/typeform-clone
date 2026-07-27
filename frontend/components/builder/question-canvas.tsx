@@ -86,18 +86,28 @@ export function QuestionCanvas({ formId, question, index, device, theme }: Quest
             {index + 1}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-baseline gap-0.5">
-              <input
+            <div className="flex items-start gap-1">
+              {/* A plain <input> can't wrap, so a long title just scrolls out of view instead of
+                  staying visible — a <textarea> wraps naturally within the card's width, same as
+                  any other text, with no measuring/sizing tricks needed. */}
+              <textarea
                 value={title}
                 onChange={(e) => {
                   setTitle(e.target.value);
                   patchQuestionCache(question.id, { title: e.target.value });
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.currentTarget.blur();
+                  }
+                }}
                 placeholder="Question title"
-                className="min-w-[2ch] max-w-full bg-transparent font-heading text-2xl font-bold outline-none placeholder:text-muted-foreground/40 [field-sizing:content]"
+                rows={1}
+                className="min-w-0 flex-1 resize-none bg-transparent font-heading text-2xl font-bold outline-none placeholder:text-muted-foreground/40 [field-sizing:content]"
               />
               {question.required && (
-                <span className="shrink-0 align-super text-base" aria-hidden>
+                <span className="mt-1.5 shrink-0 text-base" aria-hidden>
                   *
                 </span>
               )}
