@@ -58,12 +58,19 @@ export function QuestionCanvas({ formId, question, index, device, theme }: Quest
         <div className="flex items-start gap-2">
           <span className="mt-1.5 shrink-0 font-heading text-lg text-muted-foreground">{index + 1} →</span>
           <div className="min-w-0 flex-1">
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Question title"
-              className="w-full bg-transparent font-heading text-2xl font-bold outline-none placeholder:text-muted-foreground/40"
-            />
+            <div className="flex items-center gap-1.5">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Question title"
+                className="min-w-0 flex-1 bg-transparent font-heading text-2xl font-bold outline-none placeholder:text-muted-foreground/40"
+              />
+              {question.required && (
+                <span className="shrink-0 align-super text-base text-destructive" aria-hidden>
+                  *
+                </span>
+              )}
+            </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}

@@ -66,6 +66,8 @@ export function QuestionInput({ question, value, onChange, onAdvance, accentColo
           value={value.value_number ?? ""}
           placeholder={question.placeholder ?? "Type your answer here…"}
           onChange={(e) => onChange({ value_number: e.target.value === "" ? undefined : Number(e.target.value) })}
+          min={question.min_value ?? undefined}
+          max={question.max_value ?? undefined}
           className="w-full border-b-2 border-foreground/20 bg-transparent pb-3 font-heading text-2xl outline-none placeholder:text-muted-foreground/40 focus:border-foreground sm:text-3xl"
         />
       );

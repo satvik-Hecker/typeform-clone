@@ -91,6 +91,7 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
   const deleteQuestion = useDeleteQuestion(formId);
 
   const [placeholder, setPlaceholder] = useState(question.placeholder ?? "");
+  const [placeholderEnabled, setPlaceholderEnabled] = useState((question.placeholder ?? "").trim() !== "");
   const [minValue, setMinValue] = useState(question.min_value?.toString() ?? "");
   const [maxValue, setMaxValue] = useState(question.max_value?.toString() ?? "");
   const [options, setOptions] = useState<DraftOption[]>(() => toDraftOptions(question));
@@ -104,6 +105,7 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
 
   useEffect(() => {
     setPlaceholder(question.placeholder ?? "");
+    setPlaceholderEnabled((question.placeholder ?? "").trim() !== "");
     setMinValue(question.min_value?.toString() ?? "");
     setMaxValue(question.max_value?.toString() ?? "");
     setOptions(toDraftOptions(question));
@@ -214,25 +216,25 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
           </>
         )}
 
-        {hasValidation && (
-          <SettingRow label="Answer validation" hint="Restrict answers to a specific format — coming soon">
-            <Switch checked={false} onCheckedChange={() => comingSoon("Answer validation", CircleHelpIcon)} />
-          </SettingRow>
-        )}
+       
 
         {hasPlaceholder && (
           <>
             <SettingRow label="Custom placeholder text" hint="Example text shown inside the empty answer field">
               <Switch
-                checked={placeholder.trim() !== ""}
-                onCheckedChange={(checked) => setPlaceholder(checked ? " " : "")}
+                checked={placeholderEnabled}
+                onCheckedChange={(checked) => {
+                  setPlaceholderEnabled(checked);
+                  if (!checked) setPlaceholder("");
+                }}
               />
             </SettingRow>
-            {placeholder.trim() !== "" && (
+            {placeholderEnabled && (
               <Input
                 placeholder="Shown inside the answer field"
-                value={placeholder.trim()}
+                value={placeholder}
                 onChange={(e) => setPlaceholder(e.target.value)}
+                autoFocus
               />
             )}
           </>
@@ -321,6 +323,13 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
       <Separator />
 
       <div className="space-y-4">
+
+         {hasValidation && (
+          <SettingRow label="Answer validation" hint="Restrict answers to a specific format — coming soon">
+            <Switch checked={false} onCheckedChange={() => comingSoon("Answer validation", CircleHelpIcon)} />
+          </SettingRow>
+        )}
+        
         <SettingRow label="Map to contacts" hint="Link this answer to a contact property — coming soon">
           <Switch checked={false} onCheckedChange={() => comingSoon("Mapping answers to contacts", CircleHelpIcon)} />
         </SettingRow>
