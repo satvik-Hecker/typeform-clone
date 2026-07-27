@@ -64,7 +64,7 @@ export default function FormsDashboardPage() {
   );
 
   return (
-    <div className="flex h-screen flex-col gap-3 bg-muted/40 p-3 sm:gap-4 sm:p-4">
+    <div className="flex h-screen flex-col bg-muted/40 p-2 sm:gap-4 sm:p-4">
       <DashboardTopBar />
       <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col overflow-hidden rounded-2xl border bg-background shadow-sm">
 

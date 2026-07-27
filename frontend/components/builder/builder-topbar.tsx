@@ -3,17 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookTypeIcon, ChevronRightIcon, LinkIcon } from "lucide-react";
+import { BookTypeIcon, ChevronDownIcon, ChevronRightIcon, EyeOffIcon, LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserMenu } from "@/components/dashboard/user-menu";
-import { StatusPill } from "@/components/shared/status-pill";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useFormQuery, useUpdateForm } from "@/hooks/use-form";
 import { usePublishForm, useUnpublishForm } from "@/hooks/use-forms";
 import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "../shared/theme-toggle";
 
 interface BuilderTopBarProps {
   formId: number;
@@ -45,18 +52,18 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
     updateForm.mutate({ title: trimmed });
   }
 
-  function handleTogglePublish() {
-    if (form!.status === "published") {
-      unpublishForm.mutate(formId, {
-        onSuccess: () => toast.success("Form unpublished"),
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't unpublish"),
-      });
-    } else {
-      publishForm.mutate(formId, {
-        onSuccess: () => toast.success("Form published — share link is live"),
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't publish"),
-      });
-    }
+  function handlePublish() {
+    publishForm.mutate(formId, {
+      onSuccess: () => toast.success(form!.status === "published" ? "Edits published" : "Form published — share link is live"),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't publish"),
+    });
+  }
+
+  function handleUnpublish() {
+    unpublishForm.mutate(formId, {
+      onSuccess: () => toast.success("Form unpublished"),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : "Couldn't unpublish"),
+    });
   }
 
   function handleCopyLink() {
@@ -66,62 +73,107 @@ export function BuilderTopBar({ formId }: BuilderTopBarProps) {
   }
 
   const tabs = [
-    { href: `/forms/${formId}`, label: "Edit form" },
+    { href: `/forms/${formId}`, label: "Content" },
     { href: `/forms/${formId}/share`, label: "Share" },
     { href: `/forms/${formId}/results`, label: "Results" },
   ];
 
+  const published = form.status === "published";
+
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
-      <Link href="/forms" className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <BookTypeIcon className="size-4" />
-        Forms
-      </Link>
-      <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground/50" />
+    <header className="grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-stretch gap-2 border-b bg-background px-4">
+      <div className="flex min-w-0 items-center gap-1.5 self-center">
+        <Link href="/forms" className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <BookTypeIcon className="size-4" />
+          Forms
+        </Link>
+        <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground/50" />
 
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={commitTitle}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") e.currentTarget.blur();
-        }}
-        className="min-w-0 max-w-xs truncate rounded-md border border-transparent bg-transparent px-2 py-1 font-heading text-base font-semibold outline-none hover:border-border focus:border-border focus:bg-muted/50"
-      />
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={commitTitle}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+          className="min-w-0 max-w-xs truncate rounded-md border border-transparent bg-transparent px-2 py-1 font-heading text-base font-semibold outline-none hover:border-border focus:border-border focus:bg-muted/50"
+        />
 
-      {updateForm.isPending && <span className="shrink-0 text-xs text-muted-foreground">Saving…</span>}
+        {updateForm.isPending && <span className="shrink-0 text-xs text-muted-foreground">Saving…</span>}
+      </div>
 
-      <StatusPill status={form.status} />
-
-      <nav className="ml-2 flex items-center gap-1 rounded-lg bg-muted p-0.5 text-sm">
-        {tabs.map((tab) => (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            className={cn(
-              "rounded-md px-3 py-1",
-              pathname === tab.href ? "bg-background shadow-sm" : "text-muted-foreground"
-            )}
-          >
-            {tab.label}
-          </Link>
-        ))}
+      <nav className="flex items-stretch gap-6 text-sm">
+        {tabs.map((tab) => {
+          const active = pathname === tab.href;
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={cn(
+                "relative flex items-center px-1 font-medium transition-colors",
+                active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {active && <span className="absolute inset-x-0 top-0 h-0.5 rounded-full bg-primary" />}
+              {tab.label}
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="ml-auto flex items-center gap-2">
-        {form.status === "published" && (
-          <Button variant="outline" size="sm" onClick={handleCopyLink}>
-            <LinkIcon /> Copy link
+      <div className="flex items-center justify-end gap-2 self-center">
+        <ThemeToggle />
+        {published && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button variant="ghost" size="icon-sm" onClick={handleCopyLink} aria-label="Copy share link">
+                  <LinkIcon />
+                </Button>
+              }
+            />
+            <TooltipContent>Copy share link</TooltipContent>
+          </Tooltip>
+        )}
+
+        <Separator orientation="vertical" className="h-5" />
+
+        {published ? (
+          <div className="flex items-center">
+            <Button
+              size="sm"
+              className="rounded-r-none"
+              onClick={handlePublish}
+              disabled={publishForm.isPending}
+            >
+              Publish edits
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    size="sm"
+                    className="rounded-l-none border-l border-l-primary-foreground/20 px-1.5"
+                    aria-label="More publish options"
+                    disabled={unpublishForm.isPending}
+                  >
+                    <ChevronDownIcon />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem variant="destructive" onClick={handleUnpublish}>
+                  <EyeOffIcon /> Unpublish
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : (
+          <Button size="sm" onClick={handlePublish} disabled={publishForm.isPending}>
+            Publish
           </Button>
         )}
-        <Button
-          size="sm"
-          onClick={handleTogglePublish}
-          disabled={publishForm.isPending || unpublishForm.isPending}
-        >
-          {form.status === "published" ? "Unpublish" : "Publish"}
-        </Button>
-        <ThemeToggle />
+
         <UserMenu />
       </div>
     </header>
