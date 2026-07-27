@@ -31,7 +31,7 @@ export function WelcomeScreen({ title, description, onStart, accentColor }: Welc
       >
         Let&apos;s go <ArrowRightIcon className="size-4" />
       </Button>
-      <p className="text-xs text-muted-foreground">Press Enter ↵</p>
+      <p className="hidden text-xs text-muted-foreground [@media(hover:hover)]:block">Press Enter ↵</p>
     </motion.div>
   );
 }

@@ -238,7 +238,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
             style={accentColor ? { backgroundColor: accentColor, color: "white" } : undefined}
           >
             {submitting ? "Submitting…" : currentIndex === questions.length - 1 ? "Submit" : "OK"}
-            {!submitting && <CornerDownLeftIcon className="size-4" />}
+            {!submitting && <CornerDownLeftIcon className="hidden size-4 [@media(hover:hover)]:block" />}
           </Button>
         </div>
       )}

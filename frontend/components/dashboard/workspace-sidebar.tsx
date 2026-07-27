@@ -19,7 +19,7 @@ export function WorkspaceSidebar({ totalResponses, workspaceName, onRenameWorksp
   const progress = Math.min(100, (totalResponses / RESPONSE_SOFT_CAP) * 100);
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r p-4">
+    <aside className="hidden w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r p-4 lg:flex">
       <CreateFormDialog triggerClassName="w-full justify-center" />
 
       <div>

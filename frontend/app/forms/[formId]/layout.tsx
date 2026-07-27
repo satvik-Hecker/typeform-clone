@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import { BuilderTopBar } from "@/components/builder/builder-topbar";
+import { DesktopRequiredGate } from "@/components/builder/desktop-required-gate";
 
 export default function BuilderLayout(props: {
   children: React.ReactNode;
@@ -11,9 +12,11 @@ export default function BuilderLayout(props: {
   const id = Number(formId);
 
   return (
-    <div className="flex h-screen flex-col">
-      <BuilderTopBar formId={id} />
-      <div className="flex flex-1 overflow-hidden">{props.children}</div>
-    </div>
+    <DesktopRequiredGate>
+      <div className="flex h-screen flex-col">
+        <BuilderTopBar formId={id} />
+        <div className="flex flex-1 overflow-hidden">{props.children}</div>
+      </div>
+    </DesktopRequiredGate>
   );
 }

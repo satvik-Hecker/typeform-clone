@@ -97,7 +97,7 @@ export default function FormsDashboardPage() {
 
           <main className="flex-1 overflow-y-auto px-6 py-8 sm:px-8">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <WorkspaceTitle
                   value={workspaceName}
                   onCommit={setWorkspaceName}
@@ -110,6 +110,7 @@ export default function FormsDashboardPage() {
                 >
                   <UserPlusIcon /> Invite
                 </Button>
+                <CreateFormDialog triggerClassName="lg:hidden" />
               </div>
 
               <div className="flex items-center gap-2">
@@ -181,7 +182,7 @@ export default function FormsDashboardPage() {
               forms.length > 0 &&
               (view === "list" ? (
                 <div className="rounded-xl border">
-                  <Table>
+                  <Table className="min-w-[640px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
