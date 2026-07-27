@@ -19,16 +19,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateForm } from "@/hooks/use-form";
 import { ApiError } from "@/lib/api";
-import { parseFormTheme } from "@/lib/theme";
 import type { Form } from "@/lib/types";
-
-const PRESET_COLORS = ["#171717", "#2563eb", "#7c3aed", "#db2777", "#059669", "#d97706"];
 
 interface FormSettingsDialogProps {
   form: Form;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultTab?: "general" | "welcome" | "theme" | "coming-soon";
+  defaultTab?: "general" | "welcome" | "coming-soon";
 }
 
 export function FormSettingsDialog({ form, open, onOpenChange, defaultTab = "general" }: FormSettingsDialogProps) {
@@ -36,16 +33,14 @@ export function FormSettingsDialog({ form, open, onOpenChange, defaultTab = "gen
   const [thankYouMessage, setThankYouMessage] = useState(form.thank_you_message);
   const [welcomeTitle, setWelcomeTitle] = useState(form.welcome_title ?? "");
   const [welcomeDescription, setWelcomeDescription] = useState(form.welcome_description ?? "");
-  const [primaryColor, setPrimaryColor] = useState(parseFormTheme(form.theme).primaryColor ?? "");
 
   useEffect(() => {
     if (open) {
       setThankYouMessage(form.thank_you_message);
       setWelcomeTitle(form.welcome_title ?? "");
       setWelcomeDescription(form.welcome_description ?? "");
-      setPrimaryColor(parseFormTheme(form.theme).primaryColor ?? "");
     }
-  }, [open, form.thank_you_message, form.welcome_title, form.welcome_description, form.theme]);
+  }, [open, form.thank_you_message, form.welcome_title, form.welcome_description]);
 
   function handleSave() {
     updateForm.mutate(
@@ -53,7 +48,6 @@ export function FormSettingsDialog({ form, open, onOpenChange, defaultTab = "gen
         thank_you_message: thankYouMessage.trim() || "Thanks for completing this form!",
         welcome_title: welcomeTitle.trim() || null,
         welcome_description: welcomeDescription.trim() || null,
-        theme: primaryColor ? JSON.stringify({ primaryColor }) : null,
       },
       {
         onSuccess: () => {
@@ -76,7 +70,6 @@ export function FormSettingsDialog({ form, open, onOpenChange, defaultTab = "gen
           <TabsList>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="welcome">Welcome screen</TabsTrigger>
-            <TabsTrigger value="theme">Theme</TabsTrigger>
             <TabsTrigger value="coming-soon">Coming soon</TabsTrigger>
           </TabsList>
 
@@ -113,35 +106,6 @@ export function FormSettingsDialog({ form, open, onOpenChange, defaultTab = "gen
             </div>
             <p className="text-xs text-muted-foreground">
               Shown before question 1, with a &ldquo;Let&apos;s go&rdquo; button. Leave the title empty to skip it.
-            </p>
-          </TabsContent>
-
-          <TabsContent value="theme" className="space-y-3 py-2">
-            <Label>Accent color</Label>
-            <div className="flex flex-wrap gap-2">
-              {PRESET_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setPrimaryColor(color)}
-                  className="size-8 rounded-full transition-transform hover:scale-105"
-                  style={{
-                    backgroundColor: color,
-                    boxShadow: primaryColor === color ? `0 0 0 2px var(--background), 0 0 0 4px ${color}` : undefined,
-                  }}
-                  aria-label={color}
-                />
-              ))}
-              <button
-                type="button"
-                onClick={() => setPrimaryColor("")}
-                className="rounded-full border px-3 text-xs text-muted-foreground hover:bg-muted"
-              >
-                Default
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Applied to the progress bar and answer highlights in the respondent view.
             </p>
           </TabsContent>
 

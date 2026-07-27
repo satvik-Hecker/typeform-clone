@@ -43,7 +43,7 @@ export function AddQuestionMenu({ formId, onCreated }: AddQuestionMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="sm" disabled={createQuestion.isPending}>
+          <Button variant="default" size="sm" disabled={createQuestion.isPending}>
             <PlusIcon />
             Add content
           </Button>

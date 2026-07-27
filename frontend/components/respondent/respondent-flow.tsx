@@ -11,7 +11,7 @@ import { QuestionSlide } from "./question-slide";
 import { ThankYouScreen } from "./thank-you-screen";
 import { WelcomeScreen } from "./welcome-screen";
 import { ApiError, api } from "@/lib/api";
-import { parseFormTheme } from "@/lib/theme";
+import { parseFormTheme, themeFontStyle } from "@/lib/theme";
 import { isAnswerEmpty, validateAnswer } from "@/lib/validate-answer";
 import type { AnswerSubmitPayload, Form } from "@/lib/types";
 
@@ -165,10 +165,11 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
   }
 
   const progress = completed ? 1 : currentIndex / questions.length;
-  const accentColor = parseFormTheme(form.theme).primaryColor;
+  const theme = parseFormTheme(form.theme);
+  const accentColor = theme.primaryColor;
 
   return (
-    <div className="relative flex h-full min-h-screen flex-col bg-background">
+    <div className="relative flex h-full min-h-screen flex-col bg-background font-sans" style={themeFontStyle(theme)}>
       {!showWelcome && <ProgressBar progress={progress} color={accentColor} />}
 
       {mode === "preview" && onClose && (

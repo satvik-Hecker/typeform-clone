@@ -56,7 +56,13 @@ export default function BuilderEditPage(props: { params: Promise<{ formId: strin
           onQuestionCreated={setSelectedQuestionId}
         />
         {selectedQuestion ? (
-          <QuestionCanvas formId={id} question={selectedQuestion} index={selectedIndex} device={device} />
+          <QuestionCanvas
+            formId={id}
+            question={selectedQuestion}
+            index={selectedIndex}
+            device={device}
+            theme={form.theme}
+          />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             Add a question to get started.
