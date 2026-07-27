@@ -36,8 +36,7 @@ export function BuilderToolbar({ form, device, onDeviceChange, onQuestionCreated
         <PaletteIcon /> Design
       </Button>
 
-          <Separator orientation="vertical" className="mt-2 h-8" />
-
+      <Separator orientation="vertical" className="mt-2 h-8" />
 
       <div className="flex items-center gap-2">
         <div className="flex items-center rounded-lg border p-0.5">
@@ -92,8 +91,7 @@ export function BuilderToolbar({ form, device, onDeviceChange, onQuestionCreated
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-              <Separator orientation="vertical" className=" h-8" />
-
+        <Separator orientation="vertical" className="h-8" />
 
         <Tooltip>
           <TooltipTrigger

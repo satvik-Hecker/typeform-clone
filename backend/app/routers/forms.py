@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.database import get_session
-from app.models import Form, FormStatus, Question, QuestionOption, QuestionType, Response, utcnow
+from app.models import NON_ANSWERABLE_TYPES, Form, FormStatus, Question, QuestionOption, QuestionType, Response, utcnow
 from app.schemas import FormCreate, FormListItem, FormOut, FormUpdate
 
 router = APIRouter()
@@ -148,7 +148,10 @@ def duplicate_form(form_id: int, session: Session = Depends(get_session)):
 @router.post("/{form_id}/publish", response_model=FormOut)
 def publish_form(form_id: int, session: Session = Depends(get_session)):
     form = get_form_or_404(form_id, session)
-    if not form.questions:
+    # Every form always has a welcome + thank-you page, so `not form.questions` alone would
+    # never be true — check for at least one real, answerable question instead.
+    has_answerable_question = any(q.type not in NON_ANSWERABLE_TYPES for q in form.questions)
+    if not has_answerable_question:
         raise HTTPException(400, detail="Cannot publish a form with no questions")
     form.status = FormStatus.published
     form.published_at = utcnow()

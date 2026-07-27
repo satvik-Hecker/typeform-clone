@@ -272,8 +272,6 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
           </>
         )}
 
-       
-
         {hasPlaceholder && (
           <>
             <SettingRow label="Custom placeholder text" hint="Example text shown inside the empty answer field">
@@ -411,13 +409,12 @@ export function QuestionSettingsPanel({ formId, question, onDeleted }: QuestionS
       <Separator />
 
       <div className="space-y-4">
-
-         {hasValidation && (
+        {hasValidation && (
           <SettingRow label="Answer validation" hint="Restrict answers to a specific format — coming soon">
             <Switch checked={false} onCheckedChange={() => comingSoon("Answer validation", CircleHelpIcon)} />
           </SettingRow>
         )}
-        
+
         <SettingRow label="Map to contacts" hint="Link this answer to a contact property — coming soon">
           <Switch checked={false} onCheckedChange={() => comingSoon("Mapping answers to contacts", CircleHelpIcon)} />
         </SettingRow>

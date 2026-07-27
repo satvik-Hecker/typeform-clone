@@ -162,7 +162,10 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goNext, goPrev, completed, showWelcome]);
 
-  if (!question && !completed) {
+  // A form always has a welcome/thank-you page, but could still have zero real questions
+  // (e.g. previewing a draft before anything's been added) — let the welcome screen show
+  // first rather than this bailing out before showWelcome/completed even get a chance.
+  if (!question && !completed && !showWelcome) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground">
         This form has no questions yet.
@@ -170,7 +173,7 @@ export function RespondentFlow({ form, mode, onClose }: RespondentFlowProps) {
     );
   }
 
-  const progress = completed ? 1 : currentIndex / questions.length;
+  const progress = completed ? 1 : questions.length > 0 ? currentIndex / questions.length : 0;
   const theme = parseFormTheme(form.theme);
   const accentColor = theme.primaryColor;
 

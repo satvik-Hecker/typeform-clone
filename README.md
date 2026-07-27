@@ -2,7 +2,21 @@
 
 A functional clone of Typeform: drag-and-drop form builder, published shareable links, an animated one-question-at-a-time respondent experience, and a results/response dashboard.
 
-> Status: backend and frontend both complete and smoke-tested locally. See [JOURNAL.md](JOURNAL.md) for the running log of decisions. Deployment-ready — see [Deployment](#deployment) below.
+> Status: backend and frontend both complete, deployed, and smoke-tested against the live deployment. See [JOURNAL.md](JOURNAL.md) for the running log of decisions.
+
+## Demo
+
+| | Link |
+|---|---|
+| **Live app** | https://typeform-clone-liard.vercel.app |
+| **Live API** | https://typeform-clone-backend-sh77.onrender.com (interactive docs at `/docs`) |
+| **Source** | https://github.com/satvik-Hecker/typeform-clone |
+
+The live app is seeded with the same sample data described below, so it's usable immediately — no signup, no setup. Note the [database caveat](#know-before-you-deploy-the-database-resets-on-restart): it's SQLite on a free-tier host with an ephemeral disk, so it resets to the seed data on every redeploy/restart (see [Deployment](#deployment)).
+
+## UI Design
+
+The goal was for this to look and feel like Typeform, not a generic multi-step form — the builder's 3-column layout (page list → live canvas → settings panel), the toolbar iconography, the conversational one-question-at-a-time respondent flow, the dashboard's workspace chrome, and small details like the required-field asterisk styling and the "publish edits" split button were all modeled directly on Typeform's actual product, not approximated from memory. Where a real Typeform feature was out of scope (see the **Placeholders** bullet under [Architecture Overview](#architecture-overview)), the surrounding UI chrome for it still exists — it's wired to a "coming soon" toast/badge instead of being deleted, so the app's overall shape still matches Typeform's rather than looking like it's missing pieces.
 
 ## Tech Stack
 
@@ -27,6 +41,13 @@ uvicorn app.main:app --reload    # http://127.0.0.1:8000
 ```
 
 Interactive API docs: http://127.0.0.1:8000/docs
+
+**Sample data** (`app/seed.py`) — the app is usable immediately after seeding, no manual setup:
+- *Customer Feedback Survey* — **published**, 6 questions spanning short text, email, rating, multiple choice, yes/no, and long text, with **6 existing responses** (5 complete, 1 partial).
+- *Job Application — Product Designer* — **published**, 7 questions covering the remaining types (number, dropdown), with **5 existing responses** (4 complete, 1 partial).
+- *Event Registration (draft)* — **draft** status with no responses, so the dashboard shows both statuses and an empty results view.
+
+Every form also gets a welcome and thank-you page automatically (see [Database Schema](#database-schema)). The same data is also what boots up automatically on a fresh deploy — see `seed_if_empty()` in [Deployment](#deployment).
 
 Re-running `python -m app.seed` wipes and reloads all sample data — safe to run as often as you like in development.
 
@@ -66,7 +87,7 @@ Backend on [Render](https://render.com), frontend on [Vercel](https://vercel.com
 
 ### Know before you deploy: the database resets on restart
 
-The database is SQLite — a single file on disk (see `## Assumptions` below for why). Render's free tier (and most free PaaS tiers generally) uses an **ephemeral filesystem**, so that file — and anything collected in it — disappears on every restart, redeploy, or scale-to-zero spin-down. The app already accounts for this: on startup it seeds a default creator and demo forms automatically if the database is empty (see `seed_if_empty()` in `app/seed.py`), so a fresh deploy always boots into a working demo rather than a blank, broken instance. This is fine for demoing the project, but **any real responses collected between restarts will not persist**. If that matters for your use case, the two real fixes are a Render persistent disk (paid) or swapping SQLite for a hosted Postgres instance (Render's free tier includes one) — neither is set up here, since the assignment's scope explicitly allows this kind of simplification.
+The database is SQLite — a single file on disk (see [Assumptions](#assumptions) for why). Render's free tier (and most free PaaS tiers generally) uses an **ephemeral filesystem**, so that file — and anything collected in it — disappears on every restart, redeploy, or scale-to-zero spin-down. The app already accounts for this: on startup it seeds a default creator and demo forms automatically if the database is empty (see `seed_if_empty()` in `app/seed.py`), so a fresh deploy always boots into a working demo rather than a blank, broken instance. This is fine for demoing the project, but **any real responses collected between restarts will not persist**. If that matters for your use case, the two real fixes are a Render persistent disk (paid) or swapping SQLite for a hosted Postgres instance (Render's free tier includes one) — neither is set up here, since the assignment's scope explicitly allows this kind of simplification.
 
 ## Architecture Overview
 
@@ -84,7 +105,12 @@ The database is SQLite — a single file on disk (see `## Assumptions` below for
 - **Client-side validation mirrors the backend** (`lib/validate-answer.ts` mirrors `backend/app/validation.py`) for instant feedback, but every answer still round-trips through the real API — the server remains the source of truth.
 - **State**: TanStack Query for all server state (forms/questions/responses), scoped query keys per form so a question edit only invalidates that form's cache. Free-text field edits (title, description, placeholder) autosave via a 600ms debounce; required/type/option changes save immediately.
 - **Placeholders**: per the assignment's explicit allowance, "Contacts"/"Automations" (dashboard nav), "Integrations"/"Brand kit" (top bar), "Invite" (team collaboration), and a Settings-dialog tab listing logic jumps, integrations, collaboration, and payment/file-upload questions are all wired to a "coming soon" toast/badge rather than removed — they exist in the UI (matching Typeform's real layout) without pretending to be functional.
-- **Bonus features implemented**: dark mode (next-themes, toggle in both top bars), a per-form accent color (Settings → Theme) applied to the respondent view's progress bar/OK button/selected-answer states, CSV export, and partial-response tracking (a `responses` row is created when a respondent *starts*, not just on submit, so incomplete fills show up as "Partial" in the results table and count toward the completion-rate stat).
+- **Bonus features implemented**:
+  - **Dark mode** (`next-themes`, toggle in both top bars).
+  - **Custom themes**: the toolbar's Design button opens 5 named presets (Modern Dark, Minimal Editorial, Swiss Design, Futuristic AI, Bento Modern), each pairing a heading/body font (Geist, Instrument Serif, Manrope, and Fontshare's Clash Display/General Sans, loaded in `app/layout.tsx`) with an accent color — applied to the respondent view's progress bar, OK button, selected-answer states, and both heading/body fonts (`lib/theme.ts`).
+  - **CSV export**, from both the Summary and Responses tabs.
+  - **Partial-response tracking / completion rate**: a `responses` row is created when a respondent *starts*, not just on submit, so incomplete fills show up as "Partial" in the results table and count toward the completion-rate stat.
+  - **"Generate test response"** (Results → Responses tab): fills out and submits a form exactly like a real respondent would, through the same public API, with plausible random answers per question type — useful for seeing what results look like before sharing the real link.
 
 ## Database Schema
 
@@ -100,13 +126,15 @@ creators ──< forms ──< questions ──< question_options
 | Table | Purpose | Key columns |
 |---|---|---|
 | `creators` | A single seeded row stands in for real auth. | `email`, `name` |
-| `forms` | A form owned by a creator. | `status` (draft/published), `slug` (public share id, generated at creation), `theme`, `thank_you_message`, `published_at` |
-| `questions` | Ordered questions on a form. | `type` (one of the 8 required types), `required`, `order_index`, `min_value`/`max_value` (number & rating range), `placeholder` |
+| `forms` | A form owned by a creator. | `status` (draft/published), `slug` (public share id, generated at creation), `theme`, `published_at` |
+| `questions` | Ordered questions/pages on a form. | `type` (the 8 required question types, plus `welcome`/`thank_you` — see below), `required`, `order_index`, `min_value`/`max_value` (number & rating range), `placeholder` |
 | `question_options` | Choices for `multiple_choice` / `dropdown` questions. | `label`, `order_index` |
 | `responses` | One row per respondent attempt — created when they **start**, not just when they finish, so partial fills are visible. | `started_at`, `submitted_at` (null until done), `is_complete` |
 | `answers` | One row per question answered in a response. | `value_text` / `value_number` / `value_bool` / `selected_option_id` — exactly one populated, chosen by the question's type |
 
 The `answers` table maps question type → storage column: `short_text`/`long_text`/`email` → `value_text`; `number`/`rating` → `value_number`; `yes_no` → `value_bool`; `multiple_choice`/`dropdown` → `selected_option_id` (FK into `question_options`).
+
+**Welcome/thank-you screens are `questions` rows, not `forms` columns.** They started as `Form.welcome_title` / `Form.thank_you_message` fields, but were promoted to two extra `QuestionType` values (`welcome`, `thank_you`) so they're reorderable, editable, and rendered the same way as any other page instead of living behind a separate settings form. They're excluded from required-checks, answer submission, and results/export via a `NON_ANSWERABLE_TYPES` set (`backend/app/models.py`); every form gets exactly one of each at creation time and can't gain a duplicate or lose them to a type change (enforced in `app/routers/questions.py`).
 
 Full definitions: [`backend/app/models.py`](backend/app/models.py).
 
@@ -120,7 +148,7 @@ All creator-side routes are under `/api/forms`; respondent-facing routes (no aut
 | GET | `/api/forms` | List forms with status + response count |
 | POST | `/api/forms` | Create a form |
 | GET | `/api/forms/{id}` | Full form + questions (builder view) |
-| PATCH | `/api/forms/{id}` | Update title/description/theme/thank-you message |
+| PATCH | `/api/forms/{id}` | Update title/description/theme |
 | DELETE | `/api/forms/{id}` | Delete a form (cascades questions/responses) |
 | POST | `/api/forms/{id}/duplicate` | Copy a form + its questions/options |
 | POST | `/api/forms/{id}/publish` | Publish (400 if it has no questions) |
@@ -155,5 +183,5 @@ All creator-side routes are under `/api/forms`; respondent-facing routes (no aut
 - No real creator authentication — a single default creator is seeded and assumed logged-in, per the assignment's allowance to simplify auth.
 - No database migrations (Alembic) — schema is created via `SQLModel.metadata.create_all()` on startup. Acceptable at this scale; would introduce migrations for a longer-lived schema.
 - A form's public `slug` is generated at creation time (not only at publish time), so a draft form already has a stable future URL.
-- "Theme customization" is scoped to a single accent color (applied to the respondent view's progress bar, OK button, and selected-answer states) rather than full font/background/layout theming — the assignment lists custom themes as a bonus, not a core requirement.
+- "Theme customization" is scoped to 5 named presets (accent color + heading/body font pairing each) rather than freeform per-property theming (custom hex picker, arbitrary font upload, background images) — the assignment lists custom themes as a bonus, not a core requirement, and presets give real visual variety without an open-ended color/font picker UI.
 - The dashboard's workspace chrome (single "My workspace", one creator avatar, Contacts/Automations/Integrations/Brand kit/Invite) mirrors Typeform's real UI for visual fidelity but is intentionally not backed by real multi-workspace or team functionality, consistent with the assignment's explicit allowance to mock team collaboration and integrations.
