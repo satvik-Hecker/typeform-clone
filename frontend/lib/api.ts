@@ -13,7 +13,21 @@ import type {
   ResponseStartOut,
 } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+// Falls back to the deployed backend when running anywhere other than localhost, so a missing
+// (not just misconfigured) NEXT_PUBLIC_API_URL on Vercel doesn't silently point at 127.0.0.1.
+// An explicit NEXT_PUBLIC_API_URL — local or on Vercel — always takes precedence over this.
+function resolveApiUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  const isLocalhost =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+  if (typeof window !== "undefined" && !isLocalhost) {
+    return "https://typeform-clone-backend-sh77.onrender.com/api";
+  }
+  return "http://127.0.0.1:8000/api";
+}
+
+export const API_URL = resolveApiUrl();
 
 export class ApiError extends Error {
   status: number;

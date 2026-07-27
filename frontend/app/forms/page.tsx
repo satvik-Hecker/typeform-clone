@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFormsQuery } from "@/hooks/use-forms";
 import { useWorkspaceName } from "@/hooks/use-workspace-name";
+import { API_URL } from "@/lib/api";
 import { comingSoon } from "@/lib/coming-soon";
 import { cn } from "@/lib/utils";
 import type { FormListItem } from "@/lib/types";
@@ -162,8 +163,7 @@ export default function FormsDashboardPage() {
 
             {isError && (
               <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-                Couldn&apos;t load your forms. Is the backend running at{" "}
-                {process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"}?
+                Couldn&apos;t load your forms. Is the backend running at {API_URL}?
               </p>
             )}
 
